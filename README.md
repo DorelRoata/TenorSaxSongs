@@ -14,6 +14,7 @@ printable PDF parts.
 | St. Louis Blues | W.C. Handy, public domain | Intermediate |
 | Rail Yard B-flat Blues | Original | Intermediate |
 | Lanterns in the Rain | Original | Intermediate |
+| Roads We Leave Behind | Original | Intermediate |
 
 Open `index.html` to browse the collection.
 
