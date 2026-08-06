@@ -1,18 +1,38 @@
 # Tenor Sax Songs
 
-Interactive tenor saxophone play-along music.
+Interactive B-flat tenor saxophone play-alongs with synchronized notation,
+adjustable tempo, concert-pitch backing, and printable PDF parts.
 
-## Lanterns in the Rain
+## Songs
 
-An original intermediate B-flat tenor sax ballad in 12/8. The browser player includes:
+| Song | Type | Level |
+| --- | --- | --- |
+| Amazing Grace | Traditional | Beginner |
+| Midnight Slow Blues | Original | Intermediate |
+| Pocket Line Funk | Original | Intermediate |
+| St. Louis Blues | W.C. Handy, public domain | Intermediate |
+| Rail Yard B-flat Blues | Original | Intermediate |
+| Lanterns in the Rain | Original | Intermediate |
 
-- synchronized note highlighting
-- adjustable tempo
-- a two-bar count-in
-- synthesized concert-pitch backing
-- optional melody cue and looping
-- a print-friendly score
+Open `index.html` to browse the collection.
 
-Open `index.html` in a modern browser to play along, or use
-[`Lanterns-in-the-Rain-Tenor-Sax.pdf`](Lanterns-in-the-Rain-Tenor-Sax.pdf) for the
-printable one-page part.
+## Structure
+
+Parts are organized by song and then instrument so more instruments can be
+added without changing existing song URLs:
+
+```text
+songs/
+  amazing-grace/
+    tenor-sax/
+      index.html
+      song.js
+      sheet.pdf
+shared/
+  player.css
+  player.js
+  song-page.html
+```
+
+`song.js` contains instrument-specific written notes and concert-pitch backing
+chords. All parts use the shared notation and playback engine.
