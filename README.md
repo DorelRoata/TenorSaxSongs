@@ -1,7 +1,8 @@
 # Tenor Sax Songs
 
 Interactive B-flat tenor saxophone play-alongs with synchronized notation,
-adjustable tempo, concert-pitch backing, and printable PDF parts.
+adjustable tempo, concert-pitch backing, note-specific fingering charts, and
+printable PDF parts.
 
 ## Songs
 

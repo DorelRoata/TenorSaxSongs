@@ -22,6 +22,18 @@ function draw(){
  svg.append(el('text',{x:50,y:height-22,class:'meta'},`${s.credit} · B♭ tenor sax part`))
 }
 draw();
+const fingerCards=new Map(),fingerGrid=$('fingerGrid'),fingerDialog=$('fingerDialog');
+function fingering(p){
+ const n=midi(p),pc=((n%12)+12)%12,map={1:[[], 'open'],2:[[1,1,1,1,1,1],''],3:[[1,1,1,1,1,1],'E♭ pinky'],4:[[1,1,1,1,1,0],''],5:[[1,1,1,1,0,0],''],6:[[1,1,1,0,1,0],''],7:[[1,1,1,0,0,0],''],8:[[1,1,1,0,0,0],'G♯ pinky'],9:[[1,1,0,0,0,0],''],10:[[1,0,0,0,0,0],'Bis B♭'],11:[[1,0,0,0,0,0],'']};
+ if(pc===0)return n<72?{keys:[1,1,1,1,1,1],modifier:'Low C pinky',octave:false}:{keys:[0,1,0,0,0,0],modifier:'',octave:false};
+ const [keys,modifier]=map[pc];return{keys,modifier,octave:n>=74}
+}
+function drawFingerings(){
+ const pitches=[...new Set(s.bars.flat().map(n=>n[0]).filter(p=>p!=='R'))].sort((a,b)=>midi(a)-midi(b));
+ pitches.forEach(p=>{const f=fingering(p),card=document.createElement('article');card.className='finger-card';card.dataset.pitch=p;card.innerHTML=`<div class="finger-note"><strong>${p.replace('#','♯').replace('b','♭')}</strong><span class="octave ${f.octave?'on':''}">Oct</span></div><div class="key-diagram"><span class="hand-label">L</span><span class="hand-label">R</span>${[0,1,2].map(i=>`<i class="key ${f.keys[i]?'on':''}"></i><i class="key ${f.keys[i+3]?'on':''}"></i>`).join('')}</div><div class="modifier">${f.modifier}</div>`;fingerGrid.append(card);fingerCards.set(p,card)})
+}
+function activeFingering(p){fingerCards.forEach((card,pitch)=>card.classList.toggle('current',pitch===p));if(p&&fingerDialog.open)fingerCards.get(p)?.scrollIntoView({block:'nearest',behavior:'smooth'})}
+drawFingerings();$('finger').addEventListener('click',()=>fingerDialog.showModal());$('closeFinger').addEventListener('click',()=>fingerDialog.close());fingerDialog.addEventListener('click',e=>{if(e.target===fingerDialog)fingerDialog.close()});
 let audio,playing=false,timers=[];const play=$('play'),status=$('status');
 function hz(n){return 440*Math.pow(2,(n-69)/12)}
 function tone(freq,start,duration,volume=.07,type='sine'){const o=audio.createOscillator(),g=audio.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(volume,start+.018);g.gain.exponentialRampToValueAtTime(.0001,start+Math.max(.04,duration-.025));o.connect(g).connect(audio.destination);o.start(start);o.stop(start+duration)}
@@ -32,10 +44,10 @@ function backing(chord,start,beat,eighth){
  else if(s.style==='hymn'){for(let b=0;b<s.beatsPerBar;b++){const t=start+b*beat;chord.forEach((n,i)=>tone(hz(n-(i?0:12)),t,beat*.82,.022,'sine'))}}
  else{for(let b=0;b<s.beatsPerBar;b++){const t=start+b*beat;[0,2,1,3,1,2].forEach((ci,j)=>tone(hz(chord[ci%chord.length]-(ci?0:12)),t+j*beat/6,beat/6*.9,.03,j%2?'sine':'triangle'))}}
 }
-function clear(){noteEls.forEach(n=>n.setAttribute('class','note'))}
+function clear(){noteEls.forEach(n=>n.setAttribute('class','note'));activeFingering(null)}
 function stop(){timers.forEach(clearTimeout);timers=[];if(audio){audio.close();audio=null}playing=false;play.textContent='▶ Play';clear();status.textContent=`Ready · Written ${s.writtenKey}`}
 function schedule(){stop();audio=new(AudioContext||webkitAudioContext)();playing=true;play.textContent='❚❚ Pause';const bpm=+tempo.value,beat=60/bpm,unit=beat/s.beatUnit,countIn=beat*s.beatsPerBar*2,start=audio.currentTime+.12,melody=$('melodyCue').checked;for(let i=0;i<s.beatsPerBar*2;i++)click(start+i*beat,i%s.beatsPerBar===0);status.textContent='Count in · 2 bars';let units=0,index=0;
- s.bars.forEach((bar,bi)=>{const barStart=start+countIn+bi*s.unitsPerBar*unit;backing(s.chords[bi%s.chords.length],barStart,beat,unit);for(let b=0;b<s.beatsPerBar;b++)click(barStart+b*beat,b===0);bar.forEach(([pitch,dur])=>{const when=start+countIn+units*unit,id=index,ms=(when-audio.currentTime)*1000;if(melody&&pitch!=='R')tone(hz(midi(pitch)-14),when,dur*unit*.92,.08,s.style==='funk'?'sawtooth':'triangle');timers.push(setTimeout(()=>{noteEls.forEach((n,i)=>n.setAttribute('class',i<id?'note past':i===id?'note active':'note'));const pulse=noteEls[id].querySelector('.pulse');if(pulse){pulse.classList.remove('on');void pulse.getBBox();pulse.classList.add('on')}status.textContent=`Bar ${bi+1} · ${pitch==='R'?'Rest':pitch.replace('#','♯').replace('b','♭')}`;noteEls[id].scrollIntoView({behavior:'smooth',block:'center'})},Math.max(0,ms)));units+=dur;index++})});
+ s.bars.forEach((bar,bi)=>{const barStart=start+countIn+bi*s.unitsPerBar*unit;backing(s.chords[bi%s.chords.length],barStart,beat,unit);for(let b=0;b<s.beatsPerBar;b++)click(barStart+b*beat,b===0);bar.forEach(([pitch,dur])=>{const when=start+countIn+units*unit,id=index,ms=(when-audio.currentTime)*1000;if(melody&&pitch!=='R')tone(hz(midi(pitch)-14),when,dur*unit*.92,.08,s.style==='funk'?'sawtooth':'triangle');timers.push(setTimeout(()=>{noteEls.forEach((n,i)=>n.setAttribute('class',i<id?'note past':i===id?'note active':'note'));const pulse=noteEls[id].querySelector('.pulse');if(pulse){pulse.classList.remove('on');void pulse.getBBox();pulse.classList.add('on')}activeFingering(pitch==='R'?null:pitch);status.textContent=`Bar ${bi+1} · ${pitch==='R'?'Rest':pitch.replace('#','♯').replace('b','♭')}`;noteEls[id].scrollIntoView({behavior:'smooth',block:'center'})},Math.max(0,ms)));units+=dur;index++})});
  timers.push(setTimeout(()=>{$('loop').checked?schedule():stop()},(countIn+units*unit)*1000+150))}
 play.addEventListener('click',()=>playing?stop():schedule());$('stop').addEventListener('click',stop);$('print').addEventListener('click',()=>window.print());tempo.addEventListener('input',()=>{$('tempoValue').textContent=tempo.value;if(playing)schedule()});window.addEventListener('beforeunload',stop)
 })();
