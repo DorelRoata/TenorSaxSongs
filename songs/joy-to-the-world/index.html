@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Joy to the World - Tenor Sax Songs</title>
+<link rel="stylesheet" href="../../shared/player.css">
+<style>
+.controls{display:block;padding:12px 14px}
+.partbar{display:flex;flex-wrap:wrap;gap:8px}
+.partbar button{padding:8px 12px}
+.partpick{display:none;width:100%;padding:10px 14px;border:0;border-radius:99px;background:#fffdf6;color:var(--ink);font:bold .85rem Arial,sans-serif}
+.status{margin:10px 0 0;text-align:left}
+.pdf{display:inline-block;margin-top:10px}
+@media(max-width:700px){
+  html,body,.app{max-width:100vw;overflow-x:hidden}
+  .partbar{display:none}
+  .partpick{display:block}
+  .status{display:none}
+  .pages img{max-width:100%}
+}
+.partbar button[aria-pressed="true"]{background:var(--rust);border-color:var(--rust);color:#fff}
+.pages{display:flex;flex-direction:column;gap:18px}
+.pages img{display:block;width:100%;height:auto;background:#fffdf6;border:1px solid #c9bea3;box-shadow:0 12px 30px #4134251c}
+@media print{
+  .pages{gap:0}
+  .pages img{border:0;box-shadow:none;page-break-after:always}
+  .pages img:last-child{page-break-after:auto}
+}
+</style>
+</head>
+<body>
+<main class="app">
+<header>
+  <div>
+    <a class="back" href="../../">← All songs</a>
+    <h1>Joy to the World</h1>
+    <p class="subtitle" id="subtitle">Freue dich Welt! · Радуйся мир · G. F. Handel, arr. A. Perebikovski</p>
+  </div>
+  <div class="badge">Brass · Moderato</div>
+</header>
+<section class="controls" aria-label="Parts">
+  <div class="partbar" id="partbar"></div>
+  <select class="partpick" id="partpick" aria-label="Choose a part"></select>
+  <a class="pdf" id="pdf" href="sheets/score.pdf">PDF</a>
+  <div class="status" id="status">Together · full score</div>
+</section>
+<div class="sheet-wrap"><div class="pages" id="pages"></div></div>
+<section class="notes">
+  <article class="card">
+    <h2>Together</h2>
+    <p>The score shows every line at once: trumpet 1, trumpet 2, horn in F, trombone 1, trombone 2, and tuba. Concert pitch is E-flat.</p>
+  </article>
+  <article class="card">
+    <h2>Same lines, other clefs</h2>
+    <p>Horn in E-flat is the horn part written for E-flat horn. Euphonium 1 and 2 are the trombone lines written in treble clef for B-flat instruments.</p>
+  </article>
+</section>
+</main>
+<script>
+const PARTS = [
+  {id:'score', name:'Together', detail:'Full score', pdf:'sheets/score.pdf', pages:['sheets/score-1.jpg','sheets/score-2.jpg']},
+  {id:'trumpet-1', name:'Trumpet 1', detail:'in B♭', pdf:'sheets/trumpet-1.pdf', pages:['sheets/trumpet-1.jpg']},
+  {id:'trumpet-2', name:'Trumpet 2', detail:'in B♭', pdf:'sheets/trumpet-2.pdf', pages:['sheets/trumpet-2.jpg']},
+  {id:'horn-f', name:'Horn in F', detail:'in F', pdf:'sheets/horn-f.pdf', pages:['sheets/horn-f.jpg']},
+  {id:'horn-eb', name:'Horn in E♭', detail:'in E♭', pdf:'sheets/horn-eb.pdf', pages:['sheets/horn-eb.jpg']},
+  {id:'trombone-1', name:'Trombone 1', detail:'bass clef', pdf:'sheets/trombone-1.pdf', pages:['sheets/trombone-1.jpg']},
+  {id:'trombone-2', name:'Trombone 2', detail:'bass clef', pdf:'sheets/trombone-2.pdf', pages:['sheets/trombone-2.jpg']},
+  {id:'euphonium-1', name:'Euphonium 1', detail:'treble clef', pdf:'sheets/euphonium-1.pdf', pages:['sheets/euphonium-1.jpg']},
+  {id:'euphonium-2', name:'Euphonium 2', detail:'treble clef', pdf:'sheets/euphonium-2.pdf', pages:['sheets/euphonium-2.jpg']},
+  {id:'tuba', name:'Tuba', detail:'bass clef', pdf:'sheets/tuba.pdf', pages:['sheets/tuba.jpg']}
+];
+const bar = document.getElementById('partbar');
+const pick = document.getElementById('partpick');
+const pages = document.getElementById('pages');
+const pdf = document.getElementById('pdf');
+const status = document.getElementById('status');
+const buttons = new Map();
+PARTS.forEach(part => {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'secondary';
+  button.textContent = part.name;
+  button.setAttribute('aria-pressed', 'false');
+  button.title = part.detail;
+  button.addEventListener('click', () => show(part.id, true));
+  bar.append(button);
+  buttons.set(part.id, button);
+  const option = document.createElement('option');
+  option.value = part.id;
+  option.textContent = part.id === 'score' ? 'Together · full score' : (part.name.includes(' in ') ? part.name : `${part.name} · ${part.detail}`);
+  pick.append(option);
+});
+pick.addEventListener('change', () => show(pick.value, true));
+function show(id, push) {
+  const part = PARTS.find(item => item.id === id) || PARTS[0];
+  buttons.forEach((button, key) => {
+    const on = key === part.id;
+    button.setAttribute('aria-pressed', on ? 'true' : 'false');
+    button.classList.toggle('secondary', !on);
+  });
+  pdf.href = part.pdf;
+  pick.value = part.id;
+  status.textContent = part.id === 'score' || part.name.includes(' in ') ? (part.id === 'score' ? 'Together · full score' : part.name) : `${part.name} · ${part.detail}`;
+  pages.replaceChildren();
+  part.pages.forEach((src, index) => {
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = index ? `${part.name}, page ${index + 1}` : `${part.name} sheet`;
+    pages.append(img);
+  });
+  if (push) history.replaceState(null, '', '#' + part.id);
+}
+window.addEventListener('hashchange', () => show(location.hash.slice(1), false));
+show(location.hash.slice(1), false);
+</script>
+</body>
+</html>

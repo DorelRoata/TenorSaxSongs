@@ -15,8 +15,9 @@ printable PDF parts.
 | Rail Yard B-flat Blues | Original | Intermediate |
 | Lanterns in the Rain | Original | Intermediate |
 | Roads We Leave Behind | Original | Intermediate |
+| Joy to the World (Freue dich Welt!) | Handel, arr. Perebikovski | Brass score and parts |
 
-Open `index.html` to browse the collection.
+Open `index.html` to browse the collection. Joy to the World opens on the full score. The same page also switches to trumpet 1, trumpet 2, horn in F, horn in E-flat, trombone 1, trombone 2, euphonium 1, euphonium 2, and tuba. Horn in E-flat and the euphonium parts are the same music in the other usual clefs.
 
 ## Structure
 
