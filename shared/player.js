@@ -1,5 +1,4 @@
 (() => {
-  // Dynamically load shared catalog navigation if not already loaded
   if (!window.SONG_CATALOG) {
     const sc = document.createElement('script');
     sc.src = '../../../shared/catalog.js';
@@ -11,6 +10,7 @@
   const svg = document.querySelector('#sheet');
   const noteEls = [];
   const barBoxEls = [];
+  const barGeometry = [];
   const $ = id => document.getElementById(id);
   const pitchIndex = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
   const semis = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -36,8 +36,12 @@
   let paused = false;
   let audio = null;
   let timers = [];
+  let rafId = null;
+  let playbackScheduleMeta = null;
+  let playheadLine = null;
+  let playheadCap = null;
 
-  // Inject Phrase / Section Selector into .controls
+  // Inject Phrase / Section Selector and Visual Beat Dots into .controls
   const controls = document.querySelector('.controls');
   const phraseLabel = document.createElement('label');
   phraseLabel.innerHTML = `Section <select id="phraseSelect" class="phrase-select" aria-label="Select bars to practice"></select>`;
@@ -48,6 +52,21 @@
     controls.append(phraseLabel);
   }
   const phraseSelect = $('phraseSelect');
+
+  const beatDotsWrap = document.createElement('div');
+  beatDotsWrap.className = 'beat-dots';
+  beatDotsWrap.setAttribute('aria-label', 'Beat indicator');
+  for (let b = 0; b < s.beatsPerBar; b++) {
+    const dot = document.createElement('span');
+    dot.className = `beat-dot ${b === 0 ? 'downbeat' : ''}`;
+    beatDotsWrap.append(dot);
+  }
+  controls.insertBefore(beatDotsWrap, $('status'));
+
+  // Floating count-in banner
+  const countInBanner = document.createElement('div');
+  countInBanner.className = 'countin-banner';
+  document.body.append(countInBanner);
 
   function buildPhraseOptions() {
     const total = s.bars.length;
@@ -100,7 +119,7 @@
     </div>
     <div class="hud-right">
       <span class="hud-next" id="hudNext">Next: —</span>
-      <span>Click any measure to seek · Click any note to hear pitch</span>
+      <span>Orange = Now Playing · Gold = Next Note</span>
     </div>
   `;
   sheetWrap.parentNode.insertBefore(liveHud, sheetWrap);
@@ -136,26 +155,24 @@
     return y + 20 - (step - (4 * 7 + pitchIndex.E)) * 5;
   }
 
-  // Exact staff Y coordinate for Treble Clef key signatures
   function keySigY(acc, base) {
     const map = {
-      'F#': base - 20, // Top line F5
-      'C#': base - 5,  // Third space C5
-      'G#': base - 25, // Space above top line G5
-      'Bb': base,      // Middle line B4
-      'Eb': base - 15, // Fourth space E5
-      'Ab': base + 5   // Second space A4
+      'F#': base - 20,
+      'C#': base - 5,
+      'G#': base - 25,
+      'Bb': base,
+      'Eb': base - 15,
+      'Ab': base + 5
     };
     return map[acc] ?? (base - 15);
   }
 
-  // Infer chord symbol from MIDI chord array [root, third, fifth, seventh]
   function chordLabel(chord) {
     if (!chord || !chord.length) return null;
     const useSharp = (s.keySignature || []).some(k => k.includes('#')) || s.writtenKey.includes('D') || s.writtenKey.includes('G') || s.writtenKey.includes('A');
     const names = useSharp ? NOTE_NAMES_SHARP : NOTE_NAMES_FLAT;
     const rootPc = ((chord[0] % 12) + 12) % 12;
-    const writtenPc = (rootPc + 2) % 12; // B-flat Tenor Sax is +2 semitones above concert
+    const writtenPc = (rootPc + 2) % 12;
     const intervals = chord.slice(1).map(n => (((n - chord[0]) % 12) + 12) % 12);
     const isMinor = intervals.includes(3);
     const hasMin7 = intervals.includes(10);
@@ -168,12 +185,13 @@
 
   function draw() {
     const systems = Math.ceil(s.bars.length / 4);
-    const systemGap = systems > 4 ? 116 : 148;
-    const height = 104 + systems * systemGap;
+    const systemGap = systems > 4 ? 120 : 148;
+    const height = 106 + systems * systemGap;
     svg.setAttribute('viewBox', `0 0 1100 ${height}`);
     svg.replaceChildren();
     noteEls.length = 0;
     barBoxEls.length = 0;
+    barGeometry.length = 0;
 
     svg.append(el('text', { x: 50, y: 31, class: 'title-svg' }, s.title));
     svg.append(el('text', { x: 50, y: 54, class: 'meta' }, `${s.direction} · Click any measure to play from that bar`));
@@ -190,6 +208,19 @@
       const top = 76 + sys * systemGap;
       const base = top + 52;
       const bx = left + slot * barW;
+
+      // Clickable Measure Box (placed before staff lines so active measure background sits cleanly behind notes)
+      const barRect = el('rect', {
+        x: bx,
+        y: base - 34,
+        width: barW,
+        height: 88,
+        rx: 6,
+        class: bi === currentBar ? 'measure-active-bg' : 'measure-hit'
+      });
+      barRect.addEventListener('click', () => seekToBar(bi));
+      svg.append(barRect);
+      barBoxEls.push(barRect);
 
       if (slot === 0) {
         for (let l = 0; l < 5; l++) {
@@ -214,23 +245,9 @@
         svg.append(el('text', { x: timeX, y: base + 15, 'font-size': 14, 'font-weight': 'bold' }, s.time[1]));
       }
 
-      // Clickable Measure Box
-      const barRect = el('rect', {
-        x: bx,
-        y: base - 34,
-        width: barW,
-        height: 70,
-        rx: 4,
-        class: bi === currentBar ? 'measure-active-bg' : 'measure-hit'
-      });
-      barRect.addEventListener('click', () => seekToBar(bi));
-      svg.append(barRect);
-      barBoxEls.push(barRect);
-
       svg.append(el('line', { x1: bx, y1: base - 20, x2: bx, y2: base + 20, class: 'barline' }));
       svg.append(el('text', { x: bx + 5, y: top + 10, class: 'measure-no' }, String(bi + 1)));
 
-      // Chord symbol above measure (when chord changes or at start of system)
       const ch = chordLabel(s.chords[bi % s.chords.length]);
       const prevCh = bi > 0 ? chordLabel(s.chords[(bi - 1) % s.chords.length]) : null;
       if (ch && (slot === 0 || !prevCh || prevCh.written !== ch.written)) {
@@ -241,8 +258,8 @@
       const lead = slot === 0 ? (78 + key.length * 10) : 18;
       const start = bx + lead;
       const usable = barW - lead - 10;
+      barGeometry.push({ start, usable, base });
 
-      // Precompute note coordinates for eighth-note beaming within beats
       let cursor = 0;
       const barMeta = bar.map(([pitch, dur], ni) => {
         const x = start + (cursor + dur / 2) / s.unitsPerBar * usable;
@@ -252,7 +269,6 @@
         return { pitch, dur, x, y, startUnit, ni, beamed: false, up: y > base - 2 };
       });
 
-      // Group consecutive eighth notes (dur === 1) within the same beat for beaming
       const beatSize = s.beatUnit || 2;
       let i = 0;
       while (i < barMeta.length) {
@@ -280,7 +296,6 @@
             });
             const first = group[0];
             const last = group[group.length - 1];
-            // Align intermediate stems linearly along the beam
             group.forEach(n => {
               const t = last.stemX === first.stemX ? 0 : (n.stemX - first.stemX) / (last.stemX - first.stemX);
               n.stemEnd = first.stemEnd + t * (last.stemEnd - first.stemEnd);
@@ -300,7 +315,7 @@
       }
 
       barMeta.forEach(meta => {
-        const { pitch, dur, x, y } = meta;
+        const { pitch, dur, x, y, startUnit } = meta;
         const noteIdx = noteEls.length;
         const g = el('g', { class: 'note', 'data-index': noteIdx, 'data-bar': bi });
         g.style.cursor = 'pointer';
@@ -309,12 +324,19 @@
           seekToBar(bi, pitch, noteIdx);
         });
 
+        // Spotlight pill behind active/upcoming note
+        g.append(el('rect', {
+          x: x - 15,
+          y: Math.min(base - 28, y - 16),
+          width: 30,
+          height: Math.max(82, base + 56 - Math.min(base - 28, y - 16)),
+          class: 'note-spotlight'
+        }));
+
         if (pitch === 'R') {
           if (dur >= s.unitsPerBar || dur >= 6) {
-            // Whole / full-bar rest hanging below 4th line (D5)
             g.append(el('rect', { x: x - 7, y: base - 10, width: 14, height: 6, fill: '#19231f' }));
           } else if (dur >= 4) {
-            // Half rest sitting on middle line (B4)
             g.append(el('rect', { x: x - 7, y: base - 6, width: 14, height: 6, fill: '#19231f' }));
           } else if (dur === 1) {
             g.append(el('text', { x, y: base + 7, 'font-size': 24, 'text-anchor': 'middle', fill: '#19231f' }, '𝄾'));
@@ -322,7 +344,8 @@
             g.append(el('text', { x, y: base + 7, 'font-size': 26, 'text-anchor': 'middle', fill: '#19231f' }, '𝄽'));
             if (dur === 3) g.append(el('circle', { cx: x + 10, cy: base - 2, r: 1.8, fill: '#19231f' }));
           }
-          g.append(el('text', { x, y: base + 48, class: 'note-label' }, dur >= s.unitsPerBar ? 'bar rest' : 'rest'));
+          g.append(el('rect', { x: x - 14, y: base + 36, width: 28, height: 16, class: 'note-label-bg' }));
+          g.append(el('text', { x, y: base + 48, class: 'note-label' }, dur >= s.unitsPerBar ? 'rest' : 'rest'));
         } else {
           const q = parts(pitch);
           if (q.sharp && !key.includes(`${q.letter}#`)) {
@@ -338,25 +361,22 @@
             svg.append(el('line', { x1: x - 9, y1: ly, x2: x + 9, y2: ly, class: 'staff' }));
           }
 
-          // Open notehead for half notes (dur=4), dotted half notes (dur=6), and whole notes (dur>=8)
           const open = dur >= 4;
           g.append(el('ellipse', {
             cx: x,
             cy: y,
-            rx: 7,
-            ry: 4.8,
+            rx: 7.2,
+            ry: 5,
             transform: `rotate(-18 ${x} ${y})`,
             class: open ? 'note-head half' : 'note-head'
           }));
 
-          // Draw stem for all notes shorter than a whole note (dur < 8 eighth-units)
           if (dur < 8) {
             const up = meta.beamed ? meta.up : (y > base - 2);
             const stemX = meta.beamed ? meta.stemX : (x + (up ? 6 : -6));
             const stemEnd = meta.beamed ? meta.stemEnd : (y + (up ? -31 : 31));
             g.append(el('line', { x1: stemX, y1: y, x2: stemX, y2: stemEnd, class: 'note-stem' }));
 
-            // Unbeamed eighth note draws a right-facing flag
             if (dur === 1 && !meta.beamed) {
               g.append(el('path', {
                 d: up
@@ -368,19 +388,18 @@
           }
 
           if (dur === 3 || dur === 6) {
-            g.append(el('circle', { cx: x + 12, cy: y - 1, r: 1.8, fill: '#19231f' }));
+            g.append(el('circle', { cx: x + 12, cy: y - 1, r: 2, fill: '#19231f' }));
           }
+
+          g.append(el('rect', { x: x - 14, y: base + 36, width: 28, height: 16, class: 'note-label-bg' }));
           g.append(el('text', { x, y: base + 48, class: 'note-label' }, formatPitch(pitch)));
-          g.append(el('circle', { cx: x, cy: y, r: 8, class: 'pulse' }));
+          g.append(el('circle', { cx: x, cy: y, r: 9, class: 'pulse' }));
         }
 
         svg.append(g);
-        noteEls.push({ el: g, barIndex: bi, pitch, dur });
+        noteEls.push({ el: g, barIndex: bi, pitch, dur, startUnit, x, y });
       });
 
-      if (Math.abs(cursor - s.unitsPerBar) > 0.001) {
-        console.error(`Bar ${bi + 1} totals ${cursor}, expected ${s.unitsPerBar}`);
-      }
       if (bi === s.bars.length - 1) {
         svg.append(el('line', {
           x1: bx + barW - 4,
@@ -392,6 +411,11 @@
         }));
       }
     });
+
+    // Continuous sweeping playhead cursor elements
+    playheadLine = el('line', { x1: -20, y1: 0, x2: -20, y2: 0, class: 'playhead-line', visibility: 'hidden' });
+    playheadCap = el('circle', { cx: -20, cy: 0, r: 5, class: 'playhead-cap', visibility: 'hidden' });
+    svg.append(playheadLine, playheadCap);
 
     svg.append(el('text', { x: 50, y: height - 20, class: 'meta' }, `${s.credit} · B♭ tenor sax part`));
   }
@@ -427,7 +451,7 @@
   }
 
   function concertPitchName(p) {
-    const m = midi(p) - 14; // B-flat Tenor Sax sounds 14 semitones lower
+    const m = midi(p) - 14;
     const pc = ((m % 12) + 12) % 12;
     const oct = Math.floor(m / 12) - 1;
     return `${NOTE_NAMES_FLAT[pc]}${oct}`;
@@ -485,7 +509,6 @@
   draw();
   drawFingerings();
 
-  // Initialize HUD with first note of song
   const initialNote = s.bars[0]?.find(n => n[0] !== 'R')?.[0] || null;
   const secondNote = s.bars.flat()[1]?.[0] || null;
   updateLiveHud(initialNote, secondNote);
@@ -572,9 +595,47 @@
     });
   }
 
+  function setBeatDot(beatIdx) {
+    const dots = beatDotsWrap.querySelectorAll('.beat-dot');
+    dots.forEach((d, idx) => d.classList.toggle('on', idx === beatIdx));
+  }
+
+  // 60fps continuous sweeping playhead cursor synced to AudioContext clock
+  function updatePlayheadLoop() {
+    if (!playing || !audio || !playbackScheduleMeta) return;
+    const { musicStart, startBarIdx, lastBarIdx, barDuration } = playbackScheduleMeta;
+    const elapsed = audio.currentTime - musicStart;
+    if (elapsed >= 0) {
+      const barOffset = Math.floor(elapsed / barDuration);
+      const bi = startBarIdx + barOffset;
+      if (bi >= startBarIdx && bi <= lastBarIdx && barGeometry[bi]) {
+        const frac = (elapsed - barOffset * barDuration) / barDuration;
+        const geom = barGeometry[bi];
+        const x = geom.start + Math.max(0, Math.min(1, frac)) * geom.usable;
+        playheadLine.setAttribute('x1', x);
+        playheadLine.setAttribute('x2', x);
+        playheadLine.setAttribute('y1', geom.base - 32);
+        playheadLine.setAttribute('y2', geom.base + 50);
+        playheadLine.setAttribute('visibility', 'visible');
+        playheadCap.setAttribute('cx', x);
+        playheadCap.setAttribute('cy', geom.base - 32);
+        playheadCap.setAttribute('visibility', 'visible');
+      }
+    }
+    rafId = requestAnimationFrame(updatePlayheadLoop);
+  }
+
   function clearAudioTimers() {
     timers.forEach(clearTimeout);
     timers = [];
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+    countInBanner.classList.remove('show');
+    setBeatDot(-1);
+    if (playheadLine) playheadLine.setAttribute('visibility', 'hidden');
+    if (playheadCap) playheadCap.setAttribute('visibility', 'hidden');
     if (audio) {
       audio.close().catch(() => {});
       audio = null;
@@ -611,7 +672,9 @@
     } else {
       if (paused) play.textContent = `▶ Resume (Bar ${currentBar + 1})`;
       if (clickedNoteIdx !== null) {
-        noteEls.forEach((n, i) => n.el.setAttribute('class', i === clickedNoteIdx ? 'note active' : 'note'));
+        noteEls.forEach((n, i) =>
+          n.el.setAttribute('class', i === clickedNoteIdx ? 'note active' : (i === clickedNoteIdx + 1 ? 'note upcoming' : 'note'))
+        );
       }
       if (clickedPitch && clickedPitch !== 'R') {
         previewPitch(clickedPitch);
@@ -638,41 +701,75 @@
     const unit = beat / s.beatUnit;
     const countInBars = withCountIn ? 1 : 0;
     const countIn = beat * s.beatsPerBar * countInBars;
-    const start = audio.currentTime + 0.1;
+    const start = audio.currentTime + 0.08;
+    const musicStart = start + countIn;
     const melody = $('melodyCue').checked;
+
+    playbackScheduleMeta = {
+      musicStart,
+      startBarIdx,
+      lastBarIdx,
+      barDuration: s.unitsPerBar * unit
+    };
+    rafId = requestAnimationFrame(updatePlayheadLoop);
+
+    // Pre-highlight the very first note of the starting bar during count-in so the player can lock onto it!
+    const firstNoteIdx = noteEls.findIndex(n => n.barIndex === startBarIdx);
+    if (firstNoteIdx !== -1) {
+      highlightBarBox(startBarIdx);
+      noteEls.forEach((n, i) => n.el.setAttribute('class', i === firstNoteIdx ? 'note upcoming' : 'note'));
+      activeFingering(noteEls[firstNoteIdx].pitch, noteEls[firstNoteIdx + 1]?.pitch || null);
+    }
 
     if (withCountIn) {
       for (let i = 0; i < s.beatsPerBar * countInBars; i++) {
-        click(start + i * beat, i % s.beatsPerBar === 0);
+        const beatTime = start + i * beat;
+        click(beatTime, i % s.beatsPerBar === 0);
+        const ms = (beatTime - audio.currentTime) * 1000;
+        timers.push(setTimeout(() => {
+          const beatNum = (i % s.beatsPerBar) + 1;
+          setBeatDot(beatNum - 1);
+          countInBanner.textContent = `Count-In: ${beatNum} of ${s.beatsPerBar} — Get Ready (Bar ${startBarIdx + 1})`;
+          countInBanner.classList.add('show');
+          status.textContent = `Count-In · Beat ${beatNum}/${s.beatsPerBar}`;
+        }, Math.max(0, ms)));
       }
-      status.textContent = `Count-in · Starting Bar ${startBarIdx + 1}`;
+      timers.push(setTimeout(() => countInBanner.classList.remove('show'), countIn * 1000));
     }
 
     let units = 0;
     for (let bi = startBarIdx; bi <= lastBarIdx; bi++) {
       const bar = s.bars[bi];
-      const barStart = start + countIn + (bi - startBarIdx) * s.unitsPerBar * unit;
+      const barStart = musicStart + (bi - startBarIdx) * s.unitsPerBar * unit;
       backing(s.chords[bi % s.chords.length], barStart, beat, unit);
+
       for (let b = 0; b < s.beatsPerBar; b++) {
-        click(barStart + b * beat, b === 0);
+        const beatTime = barStart + b * beat;
+        click(beatTime, b === 0);
+        timers.push(setTimeout(() => setBeatDot(b), Math.max(0, (beatTime - audio.currentTime) * 1000)));
       }
 
+      const barNotes = noteEls.filter(x => x.barIndex === bi);
       bar.forEach(([pitch, dur], ni) => {
-        const when = start + countIn + units * unit;
+        const when = musicStart + units * unit;
         const ms = (when - audio.currentTime) * 1000;
-        const globalNoteIdx = noteEls.findIndex(item => item.barIndex === bi && item.el === noteEls.filter(x => x.barIndex === bi)[ni]?.el);
+        const targetObj = barNotes[ni];
+        const globalNoteIdx = noteEls.indexOf(targetObj);
         const nextNoteObj = noteEls[globalNoteIdx + 1];
 
         if (melody && pitch !== 'R') {
-          tone(hz(midi(pitch) - 14), when, dur * unit * 0.92, 0.08, s.style === 'funk' ? 'sawtooth' : 'triangle');
+          tone(hz(midi(pitch) - 14), when, dur * unit * 0.92, 0.085, s.style === 'funk' ? 'sawtooth' : 'triangle');
         }
 
         timers.push(setTimeout(() => {
           highlightBarBox(bi);
-          noteEls.forEach((n, i) =>
-            n.el.setAttribute('class', i < globalNoteIdx ? 'note past' : i === globalNoteIdx ? 'note active' : 'note')
-          );
-          const activeNode = noteEls[globalNoteIdx]?.el;
+          noteEls.forEach((n, i) => {
+            if (i < globalNoteIdx) n.el.setAttribute('class', 'note past');
+            else if (i === globalNoteIdx) n.el.setAttribute('class', 'note active');
+            else if (i === globalNoteIdx + 1) n.el.setAttribute('class', 'note upcoming');
+            else n.el.setAttribute('class', 'note');
+          });
+          const activeNode = targetObj?.el;
           if (activeNode) {
             const pulse = activeNode.querySelector('.pulse');
             if (pulse) {

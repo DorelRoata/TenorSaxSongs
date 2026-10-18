@@ -3,49 +3,50 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Joy to the World - Tenor Sax & Brass Play-Along</title>
+<title>Joy to the World - Interactive Brass & Tenor Sax Play-Along</title>
 <link rel="stylesheet" href="../../shared/player.css">
 <style>
 .ensemble-controls {
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 15;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 4vw;
+  gap: 8px;
+  padding: 10px 3.5vw;
   color: #fff;
-  background: #20332bf5;
+  background: #1d3028f7;
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid #ffffff1f;
+  border-bottom: 1px solid #ffffff24;
+  box-shadow: 0 6px 22px #00000035;
 }
 .transport-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 12px;
+  gap: 7px 10px;
 }
 .transport-row button,
 .transport-row .pdf {
-  padding: 8px 14px;
-  font-size: .78rem;
+  padding: 7px 13px;
+  font-size: .76rem;
 }
 .control-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 11px;
+  gap: 5px;
+  padding: 4px 10px;
   border-radius: 99px;
   background: #ffffff14;
-  border: 1px solid #ffffff24;
-  font: 600 .75rem Arial, sans-serif;
+  border: 1px solid #ffffff26;
+  font: 600 .73rem Arial, sans-serif;
   color: #f4eedf;
 }
 .control-pill select {
   border: 0;
   background: transparent;
   color: #fff;
-  font: 700 .75rem Arial, sans-serif;
+  font: 700 .73rem Arial, sans-serif;
   cursor: pointer;
 }
 .control-pill select option {
@@ -56,15 +57,15 @@
   display: inline-flex;
   border-radius: 99px;
   padding: 2px;
-  background: #13201b;
+  background: #111d18;
   border: 1px solid #ffffff2e;
 }
 .view-seg button {
-  padding: 6px 11px;
+  padding: 5px 10px;
   border-radius: 99px;
   background: transparent;
   color: #cfd8d3;
-  font: 700 .72rem Arial, sans-serif;
+  font: 700 .7rem Arial, sans-serif;
 }
 .view-seg button[aria-pressed="true"] {
   background: var(--gold);
@@ -72,18 +73,18 @@
 }
 .status-pill {
   margin-left: auto;
-  padding: 6px 12px;
+  padding: 5px 12px;
   border-radius: 99px;
-  background: #13201b;
-  border: 1px solid #f2d67f44;
-  font: 700 .8rem Arial, sans-serif;
+  background: #111d18;
+  border: 1px solid #f2d67f55;
+  font: 700 .78rem Arial, sans-serif;
   color: #f2d67f;
   white-space: nowrap;
 }
 .part-groups {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 14px;
+  gap: 6px 12px;
   align-items: center;
   padding-top: 6px;
   border-top: 1px solid #ffffff1a;
@@ -92,39 +93,39 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 }
 .group-label {
-  font: 700 .62rem Arial, sans-serif;
+  font: 700 .6rem Arial, sans-serif;
   text-transform: uppercase;
-  letter-spacing: .1em;
+  letter-spacing: .09em;
   color: #9ab0a5;
   margin-right: 2px;
 }
 .part-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 11px;
+  gap: 5px;
+  padding: 5px 10px;
   border-radius: 99px;
   background: #ffffff10;
-  border: 1px solid #ffffff30;
+  border: 1px solid #ffffff2b;
   color: #f6f0df;
-  font: 700 .74rem Arial, sans-serif;
-  transition: .14s;
+  font: 700 .72rem Arial, sans-serif;
+  transition: .12s;
 }
 .part-btn .part-tag {
-  padding: 2px 6px;
+  padding: 1px 5px;
   border-radius: 99px;
   background: #00000038;
   color: #e6d49e;
-  font: 700 .6rem Arial, sans-serif;
+  font: 700 .58rem Arial, sans-serif;
 }
 .part-btn[aria-pressed="true"] {
-  background: var(--rust);
-  border-color: #f4977c;
+  background: var(--active);
+  border-color: #ff9c7e;
   color: #fff;
-  box-shadow: 0 2px 10px #b44d2f66;
+  box-shadow: 0 2px 10px #ea4c2366;
 }
 .part-btn[aria-pressed="true"] .part-tag {
   background: #ffffff28;
@@ -137,66 +138,76 @@
 }
 .partpick {
   flex: 1;
-  padding: 9px 13px;
+  padding: 8px 12px;
   border: 1px solid #ffffff38;
   border-radius: 99px;
   background: #fffdf6;
   color: var(--ink);
-  font: 700 .82rem Arial, sans-serif;
+  font: 700 .8rem Arial, sans-serif;
 }
-.mixer-bar {
+/* Combined Mixer + Rehearsal Bar */
+.studio-subbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px 10px;
-  padding: 8px 4vw;
-  background: #ede4ce;
+  justify-content: space-between;
+  gap: 8px 14px;
+  padding: 8px 3.5vw;
+  background: #ede3cc;
   border-bottom: 1px solid #c9bea3;
   font-family: Arial, sans-serif;
 }
+.mixer-cluster,
+.rehearsal-jumps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
 .mixer-title {
-  font: 700 .68rem Arial, sans-serif;
+  font: 700 .64rem Arial, sans-serif;
   text-transform: uppercase;
-  letter-spacing: .11em;
+  letter-spacing: .1em;
   color: var(--rust);
-  margin-right: 4px;
+  margin-right: 3px;
 }
 .voice-chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 8px 4px 10px;
+  gap: 4px;
+  padding: 3px 7px 3px 9px;
   border-radius: 99px;
   background: #fffdf7;
   border: 1px solid #bfb396;
-  font-size: .73rem;
+  font-size: .7rem;
   color: var(--ink);
-  transition: .12s;
+  transition: .1s;
 }
 .voice-chip.playing-now {
-  border-color: var(--rust);
-  box-shadow: 0 0 0 2px #b44d2f28;
+  border-color: var(--active);
+  background: #fff3d9;
+  box-shadow: 0 0 0 2px #ea4c2330;
 }
 .voice-chip.muted {
-  opacity: .5;
+  opacity: .45;
   background: #e5decb;
 }
 .voice-name {
   font-weight: 700;
 }
 .voice-note {
-  min-width: 28px;
-  font: 700 .68rem monospace;
-  color: var(--rust);
+  min-width: 26px;
+  font: 800 .68rem monospace;
+  color: var(--active);
   text-align: center;
 }
 .mini-btn {
-  padding: 2px 6px;
-  border-radius: 6px;
+  padding: 2px 5px;
+  border-radius: 5px;
   border: 1px solid #9e937a;
   background: #f4eedf;
   color: #3b4942;
-  font: 700 .62rem Arial, sans-serif;
+  font: 700 .6rem Arial, sans-serif;
   cursor: pointer;
 }
 .mini-btn.active-mute {
@@ -209,106 +220,71 @@
   border-color: #a67c1e;
   color: #19231f;
 }
-.rehearsal-strip {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 4vw;
-  background: #f3ead5;
-  border-bottom: 1px solid #d8ceb4;
-  font-family: Arial, sans-serif;
-}
-.rehearsal-jumps {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
 .jump-btn {
-  padding: 5px 11px;
+  padding: 4px 10px;
   border-radius: 99px;
   background: #fffdf6;
   border: 1px solid #b8ab8d;
   color: var(--ink);
-  font: 700 .72rem Arial, sans-serif;
+  font: 700 .68rem Arial, sans-serif;
 }
 .jump-btn.active {
   background: var(--ink);
   border-color: var(--ink);
   color: #f2d67f;
 }
-.live-tracker {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font: 700 .78rem Arial, sans-serif;
-  color: #2f4239;
-}
-.progress-track {
-  width: 150px;
-  height: 7px;
-  border-radius: 99px;
-  background: #d3c7ab;
-  overflow: hidden;
-}
-.progress-fill {
-  width: 0%;
-  height: 100%;
-  background: var(--rust);
-  transition: width .12s linear;
-}
+/* Live Fingering + Active Note Banner */
 .live-finger-dock {
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: space-between;
-   flex-wrap: wrap;
-  gap: 12px;
-  margin: 16px 3vw 0;
-  padding: 10px 16px;
-  border-radius: 14px;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin: 12px 3vw 0;
+  padding: 8px 14px;
+  border-radius: 12px;
   background: linear-gradient(145deg, #fffdf7, #efe5cd);
   border: 1px solid #c9bea3;
-  box-shadow: 0 6px 18px #41342512;
-}
-.live-finger-dock.visible {
-  display: flex;
+  box-shadow: 0 4px 14px #41342510;
+  font-family: Arial, sans-serif;
 }
 .dock-left {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 .dock-pitch {
-  min-width: 72px;
-  padding: 8px 12px;
+  min-width: 84px;
+  padding: 6px 12px;
   border-radius: 10px;
-  background: #263b32;
-  color: #f2d67f;
+  background: var(--active);
+  color: #fff;
   text-align: center;
+  box-shadow: 0 3px 10px #ea4c2344;
 }
 .dock-pitch strong {
   display: block;
-  font: 700 1.35rem Georgia, serif;
+  font: 700 1.4rem Georgia, serif;
 }
 .dock-pitch span {
-  font: 700 .62rem Arial, sans-serif;
+  font: 700 .6rem Arial, sans-serif;
   text-transform: uppercase;
-  letter-spacing: .08em;
-  color: #cfe0d7;
+  letter-spacing: .07em;
+  color: #ffe8de;
 }
 .dock-keys {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font: 700 .75rem Arial, sans-serif;
+  gap: 7px;
+  font: 700 .74rem Arial, sans-serif;
+  flex-wrap: wrap;
 }
 .dock-pearl-group {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 5px 9px;
+  padding: 4px 8px;
   border-radius: 99px;
   background: #f6f0df;
   border: 1px solid #b8ab8d;
@@ -327,13 +303,21 @@
   padding: 3px 7px;
   border-radius: 99px;
   border: 1px solid #9c7a3d;
-  font: 700 .65rem Arial, sans-serif;
+  font: 700 .64rem Arial, sans-serif;
   color: #7c6b48;
 }
 .dock-oct.on {
-  background: var(--rust);
-  border-color: var(--rust);
+  background: var(--active);
+  border-color: var(--active);
   color: #fff;
+}
+.dock-next-pill {
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: #fff5d6;
+  border: 1px solid #d5a638;
+  font: 700 .74rem Arial, sans-serif;
+  color: #6e4e10;
 }
 .pages-toolbar {
   display: flex;
@@ -386,8 +370,8 @@
   overflow: hidden;
 }
 .page-frame.active-page {
-  border-color: var(--rust);
-  box-shadow: 0 0 0 3px #b44d2f33, 0 12px 30px #4134251c;
+  border-color: var(--active);
+  box-shadow: 0 0 0 3px #ea4c2338, 0 12px 30px #4134251c;
 }
 .page-badge {
   position: absolute;
@@ -405,29 +389,21 @@
   height: auto;
 }
 #interactiveWrap {
-  padding-bottom: 18px;
-}
-.measure-hit {
-  fill: transparent;
-  cursor: pointer;
-}
-.measure-hit:hover {
-  fill: #d5a63814;
-}
-.measure-active-bg {
-  fill: #ef5d3512;
-  stroke: #ef5d3555;
-  stroke-width: 1.2;
+  padding-bottom: 24px;
 }
 .rehearsal-box {
-  fill: #fffdf6;
+  fill: #19231f;
   stroke: #19231f;
   stroke-width: 1.5;
 }
 .rehearsal-text {
-  font: 700 13px Arial, sans-serif;
-  fill: #19231f;
+  font: 800 12px Arial, sans-serif;
+  fill: #f2d67f;
   text-anchor: middle;
+}
+.voice-staff-label {
+  font: 700 11px Arial, sans-serif;
+  fill: #263b32;
 }
 @media (max-width: 820px) {
   .part-groups { display: none; }
@@ -436,7 +412,7 @@
   .status-pill { width: 100%; margin: 0; text-align: center; }
 }
 @media print {
-  .ensemble-controls, .mixer-bar, .rehearsal-strip, .live-finger-dock, .pages-toolbar {
+  .ensemble-controls, .studio-subbar, .live-finger-dock, .pages-toolbar, .countin-banner {
     display: none !important;
   }
   .pages, .pages.spread-2 {
@@ -472,6 +448,13 @@
     <button id="playBtn" type="button">▶ Play</button>
     <button id="stopBtn" type="button" class="secondary">■ Stop</button>
 
+    <div class="beat-dots" id="beatDots" aria-label="Beat pulse indicator">
+      <span class="beat-dot downbeat"></span>
+      <span class="beat-dot"></span>
+      <span class="beat-dot"></span>
+      <span class="beat-dot"></span>
+    </div>
+
     <label class="control-pill">
       Tempo
       <input id="tempo" type="range" min="60" max="128" value="92">
@@ -492,20 +475,20 @@
     <label class="control-pill" id="mixModeWrap">
       Part Mix
       <select id="mixMode" aria-label="Selected part audio mix">
-        <option value="boost">Boost Selected Part</option>
-        <option value="minus-one">Minus-One (Mute My Part)</option>
-        <option value="solo-part">Solo Selected Part</option>
+        <option value="boost">Boost My Part</option>
+        <option value="minus-one">Minus-One (Backing Only)</option>
+        <option value="solo-part">Solo My Part</option>
         <option value="equal">Balanced Ensemble</option>
       </select>
     </label>
 
     <label class="control-pill"><input id="loopToggle" type="checkbox"> Loop</label>
-    <label class="control-pill"><input id="clickToggle" type="checkbox" checked> Metronome</label>
+    <label class="control-pill"><input id="clickToggle" type="checkbox" checked> Click</label>
 
     <div class="view-seg" role="group" aria-label="Sheet display mode">
-      <button type="button" data-view="both" aria-pressed="true">Interactive + Sheet</button>
-      <button type="button" data-view="interactive" aria-pressed="false">Interactive SVG</button>
-      <button type="button" data-view="printed" aria-pressed="false">Printed Sheet</button>
+      <button type="button" data-view="interactive" aria-pressed="true">Interactive Play-Along</button>
+      <button type="button" data-view="printed" aria-pressed="false">Engraved Sheet (JPG)</button>
+      <button type="button" data-view="both" aria-pressed="false">Both Stacked</button>
     </div>
 
     <button id="fingerBtn" type="button" class="secondary">Sax Fingerings</button>
@@ -522,34 +505,29 @@
   </div>
 </section>
 
-<section class="mixer-bar" aria-label="6-Voice Brass Mixer">
-  <span class="mixer-title">Ensemble Mixer</span>
-  <div id="mixerChips" style="display:flex;flex-wrap:wrap;gap:6px;flex:1"></div>
-  <button id="resetMixerBtn" type="button" class="mini-btn">Reset All Voices</button>
-</section>
-
-<section class="rehearsal-strip" aria-label="Rehearsal marks and measure progress">
+<section class="studio-subbar" aria-label="Ensemble voice mixer and rehearsal jumps">
+  <div class="mixer-cluster">
+    <span class="mixer-title">Voices (Mute/Solo):</span>
+    <div id="mixerChips" style="display:flex;flex-wrap:wrap;gap:5px"></div>
+    <button id="resetMixerBtn" type="button" class="mini-btn">Reset</button>
+  </div>
   <div class="rehearsal-jumps">
-    <span class="group-label" style="color:#6c6049">Jump to Bar:</span>
-    <button type="button" class="jump-btn active" data-bar="1">Bar 1 · Opening (f)</button>
-    <button type="button" class="jump-btn" data-bar="5">Bar 5 · Echo (mp)</button>
-    <button type="button" class="jump-btn" data-bar="11">[A] Bar 11 · Trombone/Sax Solo</button>
-    <button type="button" class="jump-btn" data-bar="16">[B] Bar 16 · Tutti Return (f)</button>
-    <button type="button" class="jump-btn" data-bar="24">Bar 24 · Grand Coda</button>
-  </div>
-  <div class="live-tracker">
-    <span id="trackerText">Bar 1 of 28 · Click any measure on the interactive staff to seek</span>
-    <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
+    <span class="group-label" style="color:#6c6049">Jump:</span>
+    <button type="button" class="jump-btn active" data-bar="1">Bar 1 · Intro</button>
+    <button type="button" class="jump-btn" data-bar="5">Bar 5 · Echo</button>
+    <button type="button" class="jump-btn" data-bar="11">[A] Bar 11 · Solo</button>
+    <button type="button" class="jump-btn" data-bar="16">[B] Bar 16 · Tutti</button>
+    <button type="button" class="jump-btn" data-bar="24">Bar 24 · Coda</button>
   </div>
 </section>
 
-<section class="live-finger-dock" id="liveFingerDock" aria-label="Live B-flat Tenor Saxophone Fingering">
+<section class="live-finger-dock" id="liveFingerDock" aria-label="Live Note and Fingering Tracker">
   <div class="dock-left">
     <div class="dock-pitch">
       <strong id="dockNoteName">F5</strong>
-      <span id="dockConcertName">Concert E♭4</span>
+      <span id="dockConcertName">Sounds E♭4</span>
     </div>
-    <div class="dock-keys">
+    <div class="dock-keys" id="dockSaxControls">
       <span>Left</span>
       <span class="dock-pearl-group" id="dockLeftKeys"></span>
       <span>Right</span>
@@ -557,9 +535,13 @@
       <span class="dock-oct" id="dockOctave">OCT</span>
       <span id="dockModifier" style="color:var(--rust);margin-left:4px">Standard keys</span>
     </div>
+    <div id="dockEnsembleSummary" style="display:none;font:700 .78rem Arial,sans-serif;color:#263b32">
+      Full 6-Part Score Active — Every instrument line highlights in real time as the red playhead sweeps across the bar!
+    </div>
   </div>
-  <div style="font:italic .82rem Georgia,serif;color:#5a665e">
-    B♭ Treble Clef part — playable directly on <strong>B♭ Tenor Saxophone</strong> or B♭ Trumpet / Euphonium TC
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <span class="dock-next-pill" id="dockNextNote">Next: E5</span>
+    <span style="font:600 .74rem Arial,sans-serif;color:#5a665e">Click any measure to start from that bar · Click any note to hear it</span>
   </div>
 </section>
 
@@ -567,15 +549,15 @@
   <svg id="sheet" role="img" aria-label="Interactive sheet music"></svg>
 </div>
 
-<div class="sheet-wrap" id="printedWrap">
+<div class="sheet-wrap" id="printedWrap" style="display:none">
   <div class="pages-toolbar">
-    <span class="hint" id="printedCaption">Engraved edition — switch parts above or toggle 2-page spread for wide screens.</span>
+    <span class="hint" id="printedCaption">Engraved edition — switch to "Interactive Play-Along" above for real-time note highlighting.</span>
     <div class="spread-controls">
-      <button type="button" id="spreadBtn" aria-pressed="false">2-Page Spread</button>
+      <button type="button" id="spreadBtn" aria-pressed="true">2-Page Spread</button>
       <button type="button" id="compactBtn" aria-pressed="false">Compact Width</button>
     </div>
   </div>
-  <div class="pages" id="pages"></div>
+  <div class="pages spread-2" id="pages"></div>
 </div>
 
 <section class="notes">
@@ -589,6 +571,8 @@
   </article>
 </section>
 </main>
+
+<div class="countin-banner" id="countInBanner"></div>
 
 <dialog id="fingerDialog">
   <div class="finger-heading">
@@ -630,23 +614,30 @@
   const fingerBtn = $('fingerBtn');
   const fingerDialog = $('fingerDialog');
   const fingerGrid = $('fingerGrid');
-  const liveFingerDock = $('liveFingerDock');
-  const trackerText = $('trackerText');
-  const progressFill = $('progressFill');
   const spreadBtn = $('spreadBtn');
   const compactBtn = $('compactBtn');
+  const countInBanner = $('countInBanner');
+  const beatDots = $('beatDots').querySelectorAll('.beat-dot');
 
   let currentPart = S.parts[0];
-  let viewMode = 'both';
+  let viewMode = 'interactive'; // Default directly to interactive highlighted notation!
   let spread2 = true;
   let compactFit = false;
-  let currentBar = 0; // 0-indexed measure cursor for pause/resume/seek
+  let currentBar = 0;
   let playing = false;
   let paused = false;
   let audio = null;
   let timers = [];
-  let noteEls = [];
+  let rafId = null;
+  let playbackScheduleMeta = null;
+  let playheadLine = null;
+  let playheadCap = null;
+
+  let noteEls = []; // Single-part or lead note elements
+  let scoreVoiceNoteEls = new Map(); // voiceId -> array of note objects when in Full Score mode
   let barBoxEls = [];
+  let barGeometry = [];
+
   const partButtons = new Map();
   const fingerCards = new Map();
   const voiceState = new Map();
@@ -691,22 +682,19 @@
     return node;
   }
 
-  // Staff Y coordinate supporting both Treble Clef (bottom line E4) and Bass Clef (bottom line G2)
-  function yFor(p, base, clef = 'treble') {
+  function yFor(p, base, clef = 'treble', staffStepPx = 5) {
     const q = parsePitch(p);
     const step = q.octave * 7 + PITCH_INDEX[q.letter];
     const refStep = clef === 'bass' ? (2 * 7 + PITCH_INDEX.G) : (4 * 7 + PITCH_INDEX.E);
-    return base + 20 - (step - refStep) * 5;
+    return base + 4 * staffStepPx - (step - refStep) * staffStepPx;
   }
 
-  // Accurate key signature staff Y positions
   function keySigY(acc, clef, base) {
     const mapTreble = { 'F#': base - 20, 'C#': base - 5, 'G#': base - 25, 'Bb': base, 'Eb': base - 15, 'Ab': base + 5, 'Db': base - 10 };
     const mapBass = { 'F#': base - 10, 'C#': base + 5, 'G#': base - 15, 'Bb': base + 10, 'Eb': base - 5, 'Ab': base + 15, 'Db': base };
     return (clef === 'bass' ? mapBass[acc] : mapTreble[acc]) ?? (base - 10);
   }
 
-  // Tenor Saxophone fingering lookup
   function fingering(p) {
     const n = midi(p);
     const pc = ((n % 12) + 12) % 12;
@@ -733,26 +721,31 @@
     return { keys: filled, modifier, octave: n >= 74 };
   }
 
-  function updateLiveFingerDock(pitch) {
-    if (!currentPart.supportsSaxFingering) {
-      liveFingerDock.classList.remove('visible');
-      return;
-    }
-    liveFingerDock.classList.add('visible');
+  function updateLiveFingerDock(pitch, nextPitch = null) {
+    $('dockNextNote').textContent = `Next: ${nextPitch && nextPitch !== 'R' ? formatPitch(nextPitch) : (nextPitch === 'R' ? 'Rest' : '—')}`;
+    const showSax = currentPart.supportsSaxFingering;
+    $('dockSaxControls').style.display = showSax ? 'flex' : 'none';
+    $('dockEnsembleSummary').style.display = currentPart.id === 'score' ? 'block' : 'none';
+
     if (!pitch || pitch === 'R') {
       $('dockNoteName').textContent = 'Rest';
-      $('dockConcertName').textContent = 'Breathe / Count';
-      $('dockModifier').textContent = 'No keys pressed';
+      $('dockConcertName').textContent = 'Count Beat';
+      if (showSax) $('dockModifier').textContent = 'Breathe / Count';
       return;
     }
-    const f = fingering(pitch);
-    const concertM = midi(pitch) + (currentPart.semitonesToConcert || -2);
+
+    const semitones = currentPart.semitonesToConcert ?? -2;
+    const concertM = midi(pitch) + semitones;
     $('dockNoteName').textContent = formatPitch(pitch);
     $('dockConcertName').textContent = `Sounds ${concertNameFromMidi(concertM)}`;
-    $('dockLeftKeys').innerHTML = f.keys.slice(0, 3).map(on => `<i class="dock-dot ${on ? 'on' : ''}"></i>`).join('');
-    $('dockRightKeys').innerHTML = f.keys.slice(3, 6).map(on => `<i class="dock-dot ${on ? 'on' : ''}"></i>`).join('');
-    $('dockOctave').classList.toggle('on', !!f.octave);
-    $('dockModifier').textContent = f.modifier || 'Standard keys';
+
+    if (showSax) {
+      const f = fingering(pitch);
+      $('dockLeftKeys').innerHTML = f.keys.slice(0, 3).map(on => `<i class="dock-dot ${on ? 'on' : ''}"></i>`).join('');
+      $('dockRightKeys').innerHTML = f.keys.slice(3, 6).map(on => `<i class="dock-dot ${on ? 'on' : ''}"></i>`).join('');
+      $('dockOctave').classList.toggle('on', !!f.octave);
+      $('dockModifier').textContent = f.modifier || 'Standard keys';
+    }
   }
 
   function buildFingerChart() {
@@ -765,7 +758,6 @@
       const f = fingering(p);
       const card = document.createElement('article');
       card.className = 'finger-card';
-      card.style.cursor = 'pointer';
       card.title = 'Click to audition note';
       card.innerHTML = `
         <div class="finger-note"><strong>${formatPitch(p)}</strong></div>
@@ -783,28 +775,320 @@
     });
   }
 
-  function highlightFingering(pitch) {
+  function highlightFingering(pitch, nextPitch = null) {
     fingerCards.forEach((card, p) => card.classList.toggle('current', p === pitch));
-    updateLiveFingerDock(pitch);
+    updateLiveFingerDock(pitch, nextPitch);
+  }
+
+  // Helper to draw a single bar of notes onto an SVG staff with beaming and spotlight pills
+  function renderBarNotes({ bar, bi, start, usable, base, clef, keySig, targetArray, compact = false }) {
+    let cursor = 0;
+    const barMeta = bar.map(([pitch, dur], ni) => {
+      const x = start + (cursor + dur / 2) / S.unitsPerBar * usable;
+      const y = pitch === 'R' ? base : yFor(pitch, base, clef);
+      const startUnit = cursor;
+      cursor += dur;
+      return { pitch, dur, x, y, startUnit, ni, beamed: false, up: y >= base };
+    });
+
+    // Beam eighth & sixteenth groups within each quarter-note beat (beatUnit = 4)
+    const beatSize = S.beatUnit;
+    let i = 0;
+    while (i < barMeta.length) {
+      if (barMeta[i].pitch !== 'R' && barMeta[i].dur <= 3) {
+        const beatBucket = Math.floor(barMeta[i].startUnit / beatSize);
+        const group = [barMeta[i]];
+        let j = i + 1;
+        while (
+          j < barMeta.length &&
+          barMeta[j].pitch !== 'R' &&
+          barMeta[j].dur <= 3 &&
+          Math.floor(barMeta[j].startUnit / beatSize) === beatBucket
+        ) {
+          group.push(barMeta[j]);
+          j++;
+        }
+        if (group.length >= 2) {
+          const avgY = group.reduce((sum, n) => sum + n.y, 0) / group.length;
+          const up = avgY >= base;
+          const stemLen = compact ? 24 : 30;
+          group.forEach(n => {
+            n.beamed = true;
+            n.up = up;
+            n.stemX = n.x + (up ? 5.6 : -5.6);
+            n.stemEnd = n.y + (up ? -stemLen : stemLen);
+          });
+          const first = group[0];
+          const last = group[group.length - 1];
+          group.forEach(n => {
+            const t = last.stemX === first.stemX ? 0 : (n.stemX - first.stemX) / (last.stemX - first.stemX);
+            n.stemEnd = first.stemEnd + t * (last.stemEnd - first.stemEnd);
+          });
+          svg.append(el('line', {
+            x1: first.stemX,
+            y1: first.stemEnd,
+            x2: last.stemX,
+            y2: last.stemEnd,
+            class: 'note-beam'
+          }));
+        }
+        i = j;
+      } else {
+        i++;
+      }
+    }
+
+    barMeta.forEach(meta => {
+      const { pitch, dur, x, y, startUnit } = meta;
+      const idxInArray = targetArray.length;
+      const g = el('g', { class: 'note', 'data-bar': bi });
+      g.style.cursor = 'pointer';
+      g.addEventListener('click', e => {
+        e.stopPropagation();
+        seekToBar(bi, pitch);
+      });
+
+      // Spotlight halo behind note
+      const spotTop = Math.min(base - 24, y - 14);
+      const spotHeight = (compact ? (base + 38) : (base + 54)) - spotTop;
+      g.append(el('rect', {
+        x: x - 13,
+        y: spotTop,
+        width: 26,
+        height: Math.max(54, spotHeight),
+        class: 'note-spotlight'
+      }));
+
+      if (pitch === 'R') {
+        if (dur >= 16) {
+          g.append(el('rect', { x: x - 6, y: base - 10, width: 12, height: 5, fill: '#19231f' }));
+        } else if (dur >= 8) {
+          g.append(el('rect', { x: x - 6, y: base - 5, width: 12, height: 5, fill: '#19231f' }));
+        } else {
+          g.append(el('text', { x, y: base + 6, 'font-size': compact ? 20 : 24, 'text-anchor': 'middle', fill: '#19231f' }, dur <= 2 ? '𝄾' : '𝄽'));
+        }
+        if (!compact) {
+          g.append(el('rect', { x: x - 13, y: base + 35, width: 26, height: 15, class: 'note-label-bg' }));
+          g.append(el('text', { x, y: base + 46, class: 'note-label' }, 'rest'));
+        }
+      } else {
+        const q = parsePitch(pitch);
+        if (q.sharp && !keySig.includes(`${q.letter}#`)) {
+          g.append(el('text', { x: x - 12, y: y + 5, 'font-size': 15 }, '♯'));
+        }
+        if (q.flat && !keySig.includes(`${q.letter}b`)) {
+          g.append(el('text', { x: x - 12, y: y + 5, 'font-size': 15 }, '♭'));
+        }
+        for (let ly = base - 30; ly >= y; ly -= 10) {
+          svg.append(el('line', { x1: x - 8, y1: ly, x2: x + 8, y2: ly, class: 'staff' }));
+        }
+        for (let ly = base + 30; ly <= y; ly += 10) {
+          svg.append(el('line', { x1: x - 8, y1: ly, x2: x + 8, y2: ly, class: 'staff' }));
+        }
+
+        const openHead = dur >= 8;
+        g.append(el('ellipse', {
+          cx: x,
+          cy: y,
+          rx: compact ? 6 : 6.8,
+          ry: compact ? 4.2 : 4.8,
+          transform: `rotate(-18 ${x} ${y})`,
+          class: openHead ? 'note-head half' : 'note-head'
+        }));
+
+        if (dur < 16) {
+          const up = meta.beamed ? meta.up : (y >= base);
+          const stemLen = compact ? 24 : 30;
+          const stemX = meta.beamed ? meta.stemX : (x + (up ? 5.6 : -5.6));
+          const stemEnd = meta.beamed ? meta.stemEnd : (y + (up ? -stemLen : stemLen));
+          g.append(el('line', { x1: stemX, y1: y, x2: stemX, y2: stemEnd, class: 'note-stem' }));
+
+          if (dur <= 3 && !meta.beamed) {
+            const flagPath = up
+              ? `M${stemX} ${stemEnd} q11 6 5 15`
+              : `M${stemX} ${stemEnd} q11 -6 5 -15`;
+            g.append(el('path', { d: flagPath, class: 'note-flag' }));
+          }
+          if (dur === 1 && !meta.beamed) {
+            const flag2Y = stemEnd + (up ? 6 : -6);
+            const flag2Path = up
+              ? `M${stemX} ${flag2Y} q11 6 5 15`
+              : `M${stemX} ${flag2Y} q11 -6 5 -15`;
+            g.append(el('path', { d: flag2Path, class: 'note-flag' }));
+          }
+        }
+
+        if (dur === 12 || dur === 6 || dur === 3) {
+          g.append(el('circle', { cx: x + 10.5, cy: y - 1, r: 1.8, fill: '#19231f' }));
+        }
+
+        const labelY = compact ? (base + 32) : (base + 46);
+        g.append(el('rect', { x: x - 13, y: labelY - 11, width: 26, height: 15, class: 'note-label-bg' }));
+        g.append(el('text', { x, y: labelY, class: 'note-label' }, formatPitch(pitch)));
+        g.append(el('circle', { cx: x, cy: y, r: 8, class: 'pulse' }));
+      }
+
+      svg.append(g);
+      targetArray.push({ el: g, barIndex: bi, pitch, dur, startUnit, idx: idxInArray });
+    });
   }
 
   function drawInteractiveSheet() {
+    svg.replaceChildren();
+    noteEls = [];
+    scoreVoiceNoteEls.clear();
+    barBoxEls = [];
+    barGeometry = [];
+
+    if (currentPart.id === 'score') {
+      drawFullScoreInteractive();
+    } else {
+      drawSinglePartInteractive();
+    }
+
+    playheadLine = el('line', { x1: -20, y1: 0, x2: -20, y2: 0, class: 'playhead-line', visibility: 'hidden' });
+    playheadCap = el('circle', { cx: -20, cy: 0, r: 5.5, class: 'playhead-cap', visibility: 'hidden' });
+    svg.append(playheadLine, playheadCap);
+  }
+
+  // Full 6-Voice Synchronized Interactive Score for "Together"
+  function drawFullScoreInteractive() {
+    const totalBars = 28;
+    const barsPerSys = 4;
+    const systems = Math.ceil(totalBars / barsPerSys);
+    const voiceGap = 76;
+    const systemHeight = S.voices.length * voiceGap + 46;
+    const height = 95 + systems * systemHeight;
+
+    svg.setAttribute('viewBox', `0 0 1120 ${height}`);
+    svg.append(el('text', { x: 55, y: 30, class: 'title-svg' }, `${S.title} — Full 6-Part Interactive Score (Concert E♭)`));
+    svg.append(el('text', { x: 55, y: 52, class: 'meta' }, 'All 6 voices highlight in real time · Click any measure to jump'));
+    svg.append(el('text', { x: 850, y: 52, class: 'meta' }, `♩ = ${tempoInput.value} · 4/4 · Moderato`));
+
+    S.voices.forEach(v => scoreVoiceNoteEls.set(v.id, []));
+
+    const left = 72;
+    const width = 1015;
+    const barW = width / barsPerSys;
+
+    for (let bi = 0; bi < totalBars; bi++) {
+      const sys = Math.floor(bi / barsPerSys);
+      const slot = bi % barsPerSys;
+      const sysTop = 78 + sys * systemHeight;
+      const bx = left + slot * barW;
+      const firstStaffBase = sysTop + 34;
+      const lastStaffBase = firstStaffBase + (S.voices.length - 1) * voiceGap;
+
+      // Full-system measure click & active highlight box
+      const barBg = el('rect', {
+        x: bx,
+        y: firstStaffBase - 28,
+        width: barW,
+        height: (lastStaffBase - firstStaffBase) + 64,
+        rx: 5,
+        class: bi === currentBar ? 'measure-active-bg' : 'measure-hit'
+      });
+      barBg.addEventListener('click', () => seekToBar(bi));
+      svg.append(barBg);
+      barBoxEls.push(barBg);
+
+      // Measure number & Rehearsal Mark at top of system
+      svg.append(el('text', { x: bx + 6, y: firstStaffBase - 32, class: 'measure-no' }, `Bar ${bi + 1}`));
+      const mark = S.rehearsalMarks[bi + 1];
+      if (mark && mark !== 'Intro') {
+        const w = mark.length > 1 ? 38 : 22;
+        svg.append(el('rect', { x: bx + 48, y: firstStaffBase - 46, width: w, height: 18, rx: 3, class: 'rehearsal-box' }));
+        svg.append(el('text', { x: bx + 48 + w / 2, y: firstStaffBase - 33, class: 'rehearsal-text' }, mark));
+      }
+
+      const lead = slot === 0 ? 74 : 14;
+      const start = bx + lead;
+      const usable = barW - lead - 10;
+      barGeometry.push({
+        start,
+        usable,
+        topY: firstStaffBase - 26,
+        bottomY: lastStaffBase + 32
+      });
+
+      // Draw each of the 6 voices in this measure
+      S.voices.forEach((voice, vi) => {
+        const base = firstStaffBase + vi * voiceGap;
+        const keySig = voice.keySignature || [];
+
+        if (slot === 0) {
+          svg.append(el('text', { x: 12, y: base + 4, class: 'voice-staff-label' }, voice.short));
+          for (let l = 0; l < 5; l++) {
+            svg.append(el('line', {
+              x1: left,
+              y1: base - 20 + l * 10,
+              x2: left + width,
+              y2: base - 20 + l * 10,
+              class: 'staff'
+            }));
+          }
+          const clefGlyph = voice.clef === 'bass' ? '𝄢' : '𝄞';
+          const clefY = voice.clef === 'bass' ? base + 10 : base + 15;
+          const clefSize = voice.clef === 'bass' ? 36 : 48;
+          svg.append(el('text', { x: left + 3, y: clefY, 'font-size': clefSize, 'font-family': 'Georgia' }, clefGlyph));
+          keySig.forEach((acc, idx) => {
+            svg.append(el('text', {
+              x: left + 36 + idx * 9,
+              y: keySigY(acc, voice.clef, base) + 5,
+              'font-size': 14
+            }, acc.includes('#') ? '♯' : '♭'));
+          });
+        }
+
+        svg.append(el('line', { x1: bx, y1: base - 20, x2: bx, y2: base + 20, class: 'barline' }));
+        renderBarNotes({
+          bar: voice.bars[bi],
+          bi,
+          start,
+          usable,
+          base,
+          clef: voice.clef,
+          keySig,
+          targetArray: scoreVoiceNoteEls.get(voice.id),
+          compact: true
+        });
+      });
+
+      // System bracket on left
+      if (slot === 0) {
+        svg.append(el('line', {
+          x1: left,
+          y1: firstStaffBase - 20,
+          x2: left,
+          y2: lastStaffBase + 20,
+          stroke: '#19231f',
+          'stroke-width': 3
+        }));
+      }
+      if (slot === barsPerSys - 1 || bi === totalBars - 1) {
+        svg.append(el('line', {
+          x1: bx + barW,
+          y1: firstStaffBase - 20,
+          x2: bx + barW,
+          y2: lastStaffBase + 20,
+          class: 'barline'
+        }));
+      }
+    }
+  }
+
+  // Single-Part Interactive Sheet
+  function drawSinglePartInteractive() {
     const bars = currentPart.bars;
     const clef = currentPart.clef === 'bass' ? 'bass' : 'treble';
     const systems = Math.ceil(bars.length / 4);
-    const systemGap = 122;
-    const height = 105 + systems * systemGap;
+    const systemGap = 128;
+    const height = 108 + systems * systemGap;
     svg.setAttribute('viewBox', `0 0 1100 ${height}`);
-    svg.replaceChildren();
-    noteEls = [];
-    barBoxEls = [];
 
-    const headerLabel = currentPart.id === 'score'
-      ? `${S.title} — Trumpet 1 Lead Guide (Full 6-Part Audio Active)`
-      : `${S.title} — ${currentPart.name} (${currentPart.detail})`;
-    svg.append(el('text', { x: 50, y: 31, class: 'title-svg' }, headerLabel));
+    svg.append(el('text', { x: 50, y: 31, class: 'title-svg' }, `${S.title} — ${currentPart.name} (${currentPart.detail})`));
     svg.append(el('text', { x: 50, y: 54, class: 'meta' }, `${S.direction} · Click any measure to play from that bar`));
-    svg.append(el('text', { x: 830, y: 54, class: 'meta' }, `♩ = ${tempoInput.value} · ${S.time[0]}/${S.time[1]} · ${currentPart.writtenKey}`));
+    svg.append(el('text', { x: 825, y: 54, class: 'meta' }, `♩ = ${tempoInput.value} · ${S.time[0]}/${S.time[1]} · ${currentPart.writtenKey}`));
 
     const left = 55;
     const width = 990;
@@ -814,11 +1098,23 @@
     bars.forEach((bar, bi) => {
       const sys = Math.floor(bi / 4);
       const slot = bi % 4;
-      const top = 74 + sys * systemGap;
-      const base = top + 50;
+      const top = 76 + sys * systemGap;
+      const base = top + 52;
       const bx = left + slot * barW;
       const barsInSys = Math.min(4, bars.length - sys * 4);
       const sysWidth = barsInSys * barW;
+
+      const barBg = el('rect', {
+        x: bx,
+        y: base - 34,
+        width: barW,
+        height: 88,
+        rx: 5,
+        class: bi === currentBar ? 'measure-active-bg' : 'measure-hit'
+      });
+      barBg.addEventListener('click', () => seekToBar(bi));
+      svg.append(barBg);
+      barBoxEls.push(barBg);
 
       if (slot === 0) {
         for (let l = 0; l < 5; l++) {
@@ -850,112 +1146,36 @@
         }
       }
 
-      const barBg = el('rect', {
-        x: bx,
-        y: base - 32,
-        width: barW,
-        height: 68,
-        rx: 4,
-        class: bi === currentBar ? 'measure-active-bg' : 'measure-hit'
-      });
-      barBg.addEventListener('click', () => seekToBar(bi));
-      svg.append(barBg);
-      barBoxEls.push(barBg);
-
       svg.append(el('line', { x1: bx, y1: base - 20, x2: bx, y2: base + 20, class: 'barline' }));
       svg.append(el('text', { x: bx + 5, y: top + 12, class: 'measure-no' }, String(bi + 1)));
 
-      // Rehearsal mark box ([A], [B], Coda)
       const mark = S.rehearsalMarks[bi + 1];
       if (mark && mark !== 'Intro') {
-        const w = mark.length > 1 ? 38 : 20;
-        svg.append(el('rect', { x: bx + 22, y: top - 4, width: w, height: 18, rx: 3, class: 'rehearsal-box' }));
-        svg.append(el('text', { x: bx + 22 + w / 2, y: top + 10, class: 'rehearsal-text' }, mark));
+        const w = mark.length > 1 ? 38 : 22;
+        svg.append(el('rect', { x: bx + 24, y: top - 4, width: w, height: 18, rx: 3, class: 'rehearsal-box' }));
+        svg.append(el('text', { x: bx + 24 + w / 2, y: top + 9, class: 'rehearsal-text' }, mark));
       }
 
-      const lead = slot === 0 ? (58 + keySig.length * 10 + (sys === 0 ? 18 : 0)) : 16;
+      const lead = slot === 0 ? (60 + keySig.length * 10 + (sys === 0 ? 18 : 0)) : 16;
       const start = bx + lead;
       const usable = barW - lead - 12;
-      let cursor = 0;
+      barGeometry.push({
+        start,
+        usable,
+        topY: base - 32,
+        bottomY: base + 52
+      });
 
-      bar.forEach(([pitch, dur]) => {
-        const x = start + (cursor + dur / 2) / S.unitsPerBar * usable;
-        const g = el('g', { class: 'note', 'data-index': noteEls.length, 'data-bar': bi });
-        g.style.cursor = 'pointer';
-        g.addEventListener('click', e => {
-          e.stopPropagation();
-          seekToBar(bi, pitch);
-        });
-
-        if (pitch === 'R') {
-          if (dur >= 16) {
-            g.append(el('rect', { x: x - 7, y: base - 10, width: 14, height: 6, fill: '#19231f' }));
-          } else if (dur >= 8) {
-            g.append(el('rect', { x: x - 7, y: base - 6, width: 14, height: 6, fill: '#19231f' }));
-          } else {
-            g.append(el('text', { x, y: base + 7, 'font-size': 24, 'text-anchor': 'middle', fill: '#19231f' }, dur <= 2 ? '𝄾' : '𝄽'));
-          }
-          g.append(el('text', { x, y: base + 46, class: 'note-label' }, dur >= 16 ? 'bar rest' : 'rest'));
-        } else {
-          const y = yFor(pitch, base, clef);
-          const q = parsePitch(pitch);
-          if (q.sharp && !keySig.includes(`${q.letter}#`)) {
-            g.append(el('text', { x: x - 13, y: y + 5, 'font-size': 16 }, '♯'));
-          }
-          if (q.flat && !keySig.includes(`${q.letter}b`)) {
-            g.append(el('text', { x: x - 13, y: y + 5, 'font-size': 16 }, '♭'));
-          }
-          for (let ly = base - 30; ly >= y; ly -= 10) {
-            svg.append(el('line', { x1: x - 9, y1: ly, x2: x + 9, y2: ly, class: 'staff' }));
-          }
-          for (let ly = base + 30; ly <= y; ly += 10) {
-            svg.append(el('line', { x1: x - 9, y1: ly, x2: x + 9, y2: ly, class: 'staff' }));
-          }
-
-          // In 16-units/bar (4/4): whole=16, dotted-half=12, half=8, dotted-quarter=6, quarter=4, dotted-8th=3, 8th=2, 16th=1
-          const openHead = dur >= 8;
-          g.append(el('ellipse', {
-            cx: x,
-            cy: y,
-            rx: 6.6,
-            ry: 4.6,
-            transform: `rotate(-18 ${x} ${y})`,
-            class: openHead ? 'note-head half' : 'note-head'
-          }));
-
-          // Draw stem for all notes shorter than a whole note (dur < 16)
-          if (dur < 16) {
-            const up = y >= base;
-            const stemX = x + (up ? 5.8 : -5.8);
-            const stemEnd = y + (up ? -30 : 30);
-            g.append(el('line', { x1: stemX, y1: y, x2: stemX, y2: stemEnd, class: 'note-stem' }));
-            if (dur <= 3) {
-              const flagPath = up
-                ? `M${stemX} ${stemEnd} q11 6 5 16`
-                : `M${stemX} ${stemEnd} q11 -6 5 -16`;
-              g.append(el('path', { d: flagPath, class: 'note-flag' }));
-            }
-            if (dur === 1) {
-              const flag2Y = stemEnd + (up ? 7 : -7);
-              const flag2Path = up
-                ? `M${stemX} ${flag2Y} q11 6 5 16`
-                : `M${stemX} ${flag2Y} q11 -6 5 -16`;
-              g.append(el('path', { d: flag2Path, class: 'note-flag' }));
-            }
-          }
-
-          // Augmentation dot for dotted half (12), dotted quarter (6), dotted eighth (3)
-          if (dur === 12 || dur === 6 || dur === 3) {
-            g.append(el('circle', { cx: x + 11, cy: y - 1, r: 1.8, fill: '#19231f' }));
-          }
-
-          g.append(el('text', { x, y: base + 46, class: 'note-label' }, formatPitch(pitch)));
-          g.append(el('circle', { cx: x, y: y, r: 8, class: 'pulse' }));
-        }
-
-        svg.append(g);
-        noteEls.push({ el: g, barIndex: bi, pitch, dur });
-        cursor += dur;
+      renderBarNotes({
+        bar,
+        bi,
+        start,
+        usable,
+        base,
+        clef,
+        keySig,
+        targetArray: noteEls,
+        compact: false
       });
 
       if (bi === bars.length - 1 || slot === barsInSys - 1) {
@@ -990,10 +1210,6 @@
     pagesEl.classList.toggle('fit-compact', compactFit);
     spreadBtn.setAttribute('aria-pressed', String(isMultiPage && spread2));
     compactBtn.setAttribute('aria-pressed', String(compactFit));
-
-    $('printedCaption').textContent = currentPart.id === 'tenor-sax'
-      ? 'Tenor Sax Lead uses Trumpet 1 (Bars 1–10 & 16–28) + Euphonium 1 Solo ([A] Bars 11–15), both engraved in B♭ Treble Clef.'
-      : `Engraved part: ${currentPart.name} (${currentPart.detail})`;
 
     currentPart.pages.forEach((src, index) => {
       const frame = document.createElement('div');
@@ -1134,7 +1350,8 @@
     drawInteractiveSheet();
     renderPrintedPages();
     const firstPitch = currentPart.bars[currentBar]?.find(n => n[0] !== 'R')?.[0] || null;
-    updateLiveFingerDock(firstPitch);
+    const secondPitch = currentPart.bars[currentBar]?.[1]?.[0] || null;
+    updateLiveFingerDock(firstPitch, secondPitch);
 
     if (!playing) {
       statusEl.textContent = `Ready · ${currentPart.name} (${currentPart.writtenKey})`;
@@ -1179,12 +1396,49 @@
     const semitones = currentPart.semitonesToConcert ?? -2;
     const concertMidi = midi(pitch) + semitones;
     playTone(hz(concertMidi), audio.currentTime + 0.02, 0.55, 0.085, 'triangle');
-    highlightFingering(pitch);
+    highlightFingering(pitch, null);
+  }
+
+  function setBeatDot(beatIdx) {
+    beatDots.forEach((d, idx) => d.classList.toggle('on', idx === beatIdx));
+  }
+
+  // 60fps continuous sweeping playhead cursor synced to AudioContext clock
+  function updatePlayheadLoop() {
+    if (!playing || !audio || !playbackScheduleMeta) return;
+    const { musicStart, startBarIndex, endBarIndex, barDuration } = playbackScheduleMeta;
+    const elapsed = audio.currentTime - musicStart;
+    if (elapsed >= 0) {
+      const barOffset = Math.floor(elapsed / barDuration);
+      const bi = startBarIndex + barOffset;
+      if (bi >= startBarIndex && bi <= endBarIndex && barGeometry[bi]) {
+        const frac = (elapsed - barOffset * barDuration) / barDuration;
+        const geom = barGeometry[bi];
+        const x = geom.start + Math.max(0, Math.min(1, frac)) * geom.usable;
+        playheadLine.setAttribute('x1', x);
+        playheadLine.setAttribute('x2', x);
+        playheadLine.setAttribute('y1', geom.topY);
+        playheadLine.setAttribute('y2', geom.bottomY);
+        playheadLine.setAttribute('visibility', 'visible');
+        playheadCap.setAttribute('cx', x);
+        playheadCap.setAttribute('cy', geom.topY);
+        playheadCap.setAttribute('visibility', 'visible');
+      }
+    }
+    rafId = requestAnimationFrame(updatePlayheadLoop);
   }
 
   function clearTimers() {
     timers.forEach(clearTimeout);
     timers = [];
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+    countInBanner.classList.remove('show');
+    setBeatDot(-1);
+    if (playheadLine) playheadLine.setAttribute('visibility', 'hidden');
+    if (playheadCap) playheadCap.setAttribute('visibility', 'hidden');
     if (audio) {
       audio.close().catch(() => {});
       audio = null;
@@ -1197,7 +1451,6 @@
     if (st.muted || (anySolo && !st.solo)) return 0;
 
     let g = voice.gain;
-    // Dynamic shading from score: bars 5-7 mp, bars 11-14 mf, bar 15 p, bars 20-22 mp
     const barNum = barIdx + 1;
     if ((barNum >= 5 && barNum <= 7) || (barNum >= 20 && barNum <= 22)) g *= 0.72;
     else if (barNum === 15) g *= 0.58;
@@ -1209,7 +1462,7 @@
       const mode = mixModeSelect.value;
       if (mode === 'minus-one' && voice.id === activeVoiceId) return 0;
       if (mode === 'solo-part') return voice.id === activeVoiceId ? g * 1.4 : 0;
-      if (mode === 'boost') g *= (voice.id === activeVoiceId ? 1.38 : 0.68);
+      if (mode === 'boost') g *= (voice.id === activeVoiceId ? 1.4 : 0.65);
     }
     return g;
   }
@@ -1223,10 +1476,7 @@
     barBoxEls.forEach((rect, idx) => {
       rect.setAttribute('class', idx === barIdx ? 'measure-active-bg' : 'measure-hit');
     });
-    const pct = ((barIdx + 1) / 28) * 100;
-    progressFill.style.width = `${pct}%`;
 
-    // Highlight active printed score page (Page 1 = bars 1-10, Page 2 = bars 11-28)
     const frames = pagesEl.querySelectorAll('.page-frame');
     frames.forEach((f, idx) => {
       const onPage = currentPart.id === 'score'
@@ -1235,7 +1485,6 @@
       f.classList.toggle('active-page', playing && onPage);
     });
 
-    // Update active rehearsal jump pill
     document.querySelectorAll('.jump-btn').forEach(btn => {
       const b = +btn.dataset.bar;
       const active = (b === 1 && barIdx < 4) ||
@@ -1263,9 +1512,10 @@
     currentBar = sec.startBar - 1;
     playBtn.textContent = '▶ Play';
     noteEls.forEach(n => n.el.setAttribute('class', 'note'));
+    scoreVoiceNoteEls.forEach(arr => arr.forEach(n => n.el.setAttribute('class', 'note')));
     S.voices.forEach(v => {
-      const el = document.querySelector(`[data-voice-note="${v.id}"]`);
-      if (el) el.textContent = '—';
+      const elSpan = document.querySelector(`[data-voice-note="${v.id}"]`);
+      if (elSpan) elSpan.textContent = '—';
       voiceChips.get(v.id)?.classList.remove('playing-now');
     });
     highlightActiveMeasure(currentBar);
@@ -1275,7 +1525,6 @@
   function seekToBar(barIdx, previewPitch = null) {
     currentBar = Math.max(0, Math.min(27, barIdx));
     highlightActiveMeasure(currentBar);
-    trackerText.textContent = `Bar ${currentBar + 1} of 28 · ${currentPart.name}`;
     if (playing) {
       schedulePlayback(currentBar, false);
     } else {
@@ -1284,8 +1533,10 @@
         previewSingleNote(previewPitch);
       } else {
         const firstPitch = currentPart.bars[currentBar]?.find(n => n[0] !== 'R')?.[0] || null;
-        highlightFingering(firstPitch);
+        const secondPitch = currentPart.bars[currentBar]?.[1]?.[0] || null;
+        highlightFingering(firstPitch, secondPitch);
       }
+      statusEl.textContent = `Ready at Bar ${currentBar + 1} · ${currentPart.name}`;
     }
   }
 
@@ -1300,35 +1551,66 @@
     const endBarIndex = Math.max(startBarIndex, sec.endBar - 1);
     const bpm = +tempoInput.value;
     const beat = 60 / bpm;
-    const unit = beat / S.beatUnit; // 1 sixteenth-note duration in seconds
+    const unit = beat / S.beatUnit;
     const countInBeats = withCountIn ? S.beatsPerBar : 0;
     const countInSec = countInBeats * beat;
     const start = audio.currentTime + 0.08;
+    const musicStart = start + countInSec;
     const useClick = clickToggle.checked;
 
-    if (withCountIn && useClick) {
-      for (let i = 0; i < countInBeats; i++) {
-        playClick(start + i * beat, i === 0);
+    playbackScheduleMeta = {
+      musicStart,
+      startBarIndex,
+      endBarIndex,
+      barDuration: S.unitsPerBar * unit
+    };
+    rafId = requestAnimationFrame(updatePlayheadLoop);
+
+    // Pre-highlight the starting bar during count-in so the player's eye locks on immediately
+    highlightActiveMeasure(startBarIndex);
+    if (currentPart.id !== 'score') {
+      const firstIdx = noteEls.findIndex(n => n.barIndex === startBarIndex);
+      if (firstIdx !== -1) {
+        noteEls.forEach((n, i) => n.el.setAttribute('class', i === firstIdx ? 'note upcoming' : 'note'));
+        highlightFingering(noteEls[firstIdx].pitch, noteEls[firstIdx + 1]?.pitch || null);
       }
-      statusEl.textContent = `Count-in · Starting at Bar ${startBarIndex + 1}`;
+    }
+
+    if (withCountIn) {
+      for (let i = 0; i < countInBeats; i++) {
+        const beatTime = start + i * beat;
+        if (useClick) playClick(beatTime, i === 0);
+        const ms = (beatTime - audio.currentTime) * 1000;
+        timers.push(setTimeout(() => {
+          const beatNum = i + 1;
+          setBeatDot(i);
+          countInBanner.textContent = `Count-In: ${beatNum} of 4 — Get Ready (Bar ${startBarIndex + 1})`;
+          countInBanner.classList.add('show');
+          statusEl.textContent = `Count-In · Beat ${beatNum}/4`;
+        }, Math.max(0, ms)));
+      }
+      timers.push(setTimeout(() => countInBanner.classList.remove('show'), countInSec * 1000));
     }
 
     let elapsedUnits = 0;
     for (let bi = startBarIndex; bi <= endBarIndex; bi++) {
-      const barStart = start + countInSec + elapsedUnits * unit;
+      const barStart = musicStart + elapsedUnits * unit;
 
-      if (useClick) {
-        for (let b = 0; b < S.beatsPerBar; b++) {
-          playClick(barStart + b * beat, b === 0);
-        }
+      for (let b = 0; b < S.beatsPerBar; b++) {
+        const beatTime = barStart + b * beat;
+        if (useClick) playClick(beatTime, b === 0);
+        timers.push(setTimeout(() => setBeatDot(b), Math.max(0, (beatTime - audio.currentTime) * 1000)));
       }
 
-      // Schedule all 6 ensemble voices
+      // Schedule all 6 ensemble voices (audio + Full Score multi-staff note highlighting!)
       S.voices.forEach(voice => {
         const gain = effectiveVoiceGain(voice, bi);
         let vCursor = 0;
+        const voiceArr = scoreVoiceNoteEls.get(voice.id) || [];
+
         voice.bars[bi].forEach(([vPitch, vDur]) => {
-          const noteTime = barStart + vCursor * unit;
+          const noteStartUnit = vCursor; // Capture immutable start unit in closure!
+          const noteTime = barStart + noteStartUnit * unit;
           const ms = (noteTime - audio.currentTime) * 1000;
           if (vPitch !== 'R' && gain > 0) {
             const concertM = midi(vPitch) + voice.semitonesToConcert;
@@ -1338,48 +1620,63 @@
             const noteSpan = document.querySelector(`[data-voice-note="${voice.id}"]`);
             if (noteSpan) noteSpan.textContent = vPitch === 'R' ? '·' : formatPitch(vPitch);
             voiceChips.get(voice.id)?.classList.toggle('playing-now', vPitch !== 'R' && gain > 0);
+
+            // Highlight this voice's note on the Full Score interactive SVG!
+            if (currentPart.id === 'score' && voiceArr.length) {
+              const target = voiceArr.find(n => n.barIndex === bi && n.startUnit === noteStartUnit);
+              if (target) {
+                const tIdx = target.idx;
+                voiceArr.forEach((n, idx) => {
+                  if (idx < tIdx) n.el.setAttribute('class', 'note past');
+                  else if (idx === tIdx) n.el.setAttribute('class', gain > 0 ? 'note active' : 'note past');
+                  else if (idx === tIdx + 1) n.el.setAttribute('class', 'note upcoming');
+                  else n.el.setAttribute('class', 'note');
+                });
+              }
+            }
           }, Math.max(0, ms)));
           vCursor += vDur;
         });
       });
 
-      // Schedule visual note tracking for the currently selected part
+      // Schedule visual note tracking for the selected part (or lead cue in Score mode)
       let pCursor = 0;
-      currentPart.bars[bi].forEach(([pitch, dur]) => {
-        const noteTime = barStart + pCursor * unit;
+      const barNotes = noteEls.filter(n => n.barIndex === bi);
+      currentPart.bars[bi].forEach(([pitch, dur], ni) => {
+        const noteStartUnit = pCursor; // Capture immutable start unit for this note!
+        const noteTime = barStart + noteStartUnit * unit;
         const ms = (noteTime - audio.currentTime) * 1000;
-        const beatNum = Math.floor(pCursor / S.beatUnit) + 1;
+        const beatNum = Math.floor(noteStartUnit / S.beatUnit) + 1;
+        const targetObj = barNotes[ni];
+        const globalIdx = targetObj ? targetObj.idx : -1;
+        const nextObj = globalIdx >= 0 ? noteEls[globalIdx + 1] : null;
+
         timers.push(setTimeout(() => {
           highlightActiveMeasure(bi);
-          noteEls.forEach(item => {
-            const isPast = item.barIndex < bi;
-            const isCurrent = item.barIndex === bi && item.pitch === pitch && Math.abs(pCursor - pCursor) < 0.1;
-            item.el.classList.toggle('past', isPast);
-          });
-          // Highlight specific note element in this bar
-          const barNotes = noteEls.filter(n => n.barIndex === bi);
-          let c = 0;
-          barNotes.forEach(n => {
-            const active = c === pCursor;
-            n.el.setAttribute('class', active ? 'note active' : (c < pCursor ? 'note past' : 'note'));
-            if (active) {
-              const pulse = n.el.querySelector('.pulse');
-              if (pulse) {
-                pulse.classList.remove('on');
-                void pulse.getBBox();
-                pulse.classList.add('on');
-              }
-              if (viewMode !== 'printed') {
-                n.el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-              }
+          if (currentPart.id !== 'score' && globalIdx >= 0) {
+            noteEls.forEach((n, idx) => {
+              if (idx < globalIdx) n.el.setAttribute('class', 'note past');
+              else if (idx === globalIdx) n.el.setAttribute('class', 'note active');
+              else if (idx === globalIdx + 1) n.el.setAttribute('class', 'note upcoming');
+              else n.el.setAttribute('class', 'note');
+            });
+            const activeNode = targetObj.el;
+            const pulse = activeNode.querySelector('.pulse');
+            if (pulse) {
+              pulse.classList.remove('on');
+              void pulse.getBBox();
+              pulse.classList.add('on');
             }
-            c += n.dur;
-          });
+            if (viewMode !== 'printed') {
+              activeNode.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+          } else if (currentPart.id === 'score' && viewMode !== 'printed') {
+            barBoxEls[bi]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
 
-          highlightFingering(pitch === 'R' ? null : pitch);
+          highlightFingering(pitch === 'R' ? null : pitch, nextObj?.pitch || null);
           const reh = S.rehearsalMarks[bi + 1] ? `[${S.rehearsalMarks[bi + 1]}] ` : '';
           statusEl.textContent = `${reh}Bar ${bi + 1}/28 · Beat ${beatNum} · ${pitch === 'R' ? 'Rest' : formatPitch(pitch)}`;
-          trackerText.textContent = `${reh}Bar ${bi + 1} of 28 · Beat ${beatNum} · ${currentPart.name}`;
         }, Math.max(0, ms)));
         pCursor += dur;
       });
@@ -1398,7 +1695,6 @@
     }, totalMs));
   }
 
-  // Wire up controls
   playBtn.addEventListener('click', () => {
     if (playing) pausePlayback();
     else schedulePlayback(currentBar, !paused);
@@ -1451,7 +1747,6 @@
   window.addEventListener('hashchange', () => selectPart(location.hash.slice(1), false));
   window.addEventListener('beforeunload', clearTimers);
 
-  // Initialize UI
   buildPartSelectors();
   buildMixer();
   syncMixerUI();
