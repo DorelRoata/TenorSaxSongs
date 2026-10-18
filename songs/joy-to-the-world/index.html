@@ -3,29 +3,456 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Joy to the World - Tenor Sax Songs</title>
+<title>Joy to the World - Tenor Sax & Brass Play-Along</title>
 <link rel="stylesheet" href="../../shared/player.css">
 <style>
-.controls{display:block;padding:12px 14px}
-.partbar{display:flex;flex-wrap:wrap;gap:8px}
-.partbar button{padding:8px 12px}
-.partpick{display:none;width:100%;padding:10px 14px;border:0;border-radius:99px;background:#fffdf6;color:var(--ink);font:bold .85rem Arial,sans-serif}
-.status{margin:10px 0 0;text-align:left}
-.pdf{display:inline-block;margin-top:10px}
-@media(max-width:700px){
-  html,body,.app{max-width:100vw;overflow-x:hidden}
-  .partbar{display:none}
-  .partpick{display:block}
-  .status{display:none}
-  .pages img{max-width:100%}
+.ensemble-controls {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 4vw;
+  color: #fff;
+  background: #20332bf5;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid #ffffff1f;
 }
-.partbar button[aria-pressed="true"]{background:var(--rust);border-color:var(--rust);color:#fff}
-.pages{display:flex;flex-direction:column;gap:18px}
-.pages img{display:block;width:100%;height:auto;background:#fffdf6;border:1px solid #c9bea3;box-shadow:0 12px 30px #4134251c}
-@media print{
-  .pages{gap:0}
-  .pages img{border:0;box-shadow:none;page-break-after:always}
-  .pages img:last-child{page-break-after:auto}
+.transport-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.transport-row button,
+.transport-row .pdf {
+  padding: 8px 14px;
+  font-size: .78rem;
+}
+.control-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 99px;
+  background: #ffffff14;
+  border: 1px solid #ffffff24;
+  font: 600 .75rem Arial, sans-serif;
+  color: #f4eedf;
+}
+.control-pill select {
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font: 700 .75rem Arial, sans-serif;
+  cursor: pointer;
+}
+.control-pill select option {
+  color: #19231f;
+  background: #fffdf6;
+}
+.view-seg {
+  display: inline-flex;
+  border-radius: 99px;
+  padding: 2px;
+  background: #13201b;
+  border: 1px solid #ffffff2e;
+}
+.view-seg button {
+  padding: 6px 11px;
+  border-radius: 99px;
+  background: transparent;
+  color: #cfd8d3;
+  font: 700 .72rem Arial, sans-serif;
+}
+.view-seg button[aria-pressed="true"] {
+  background: var(--gold);
+  color: #18231f;
+}
+.status-pill {
+  margin-left: auto;
+  padding: 6px 12px;
+  border-radius: 99px;
+  background: #13201b;
+  border: 1px solid #f2d67f44;
+  font: 700 .8rem Arial, sans-serif;
+  color: #f2d67f;
+  white-space: nowrap;
+}
+.part-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+  padding-top: 6px;
+  border-top: 1px solid #ffffff1a;
+}
+.part-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+.group-label {
+  font: 700 .62rem Arial, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: #9ab0a5;
+  margin-right: 2px;
+}
+.part-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: 99px;
+  background: #ffffff10;
+  border: 1px solid #ffffff30;
+  color: #f6f0df;
+  font: 700 .74rem Arial, sans-serif;
+  transition: .14s;
+}
+.part-btn .part-tag {
+  padding: 2px 6px;
+  border-radius: 99px;
+  background: #00000038;
+  color: #e6d49e;
+  font: 700 .6rem Arial, sans-serif;
+}
+.part-btn[aria-pressed="true"] {
+  background: var(--rust);
+  border-color: #f4977c;
+  color: #fff;
+  box-shadow: 0 2px 10px #b44d2f66;
+}
+.part-btn[aria-pressed="true"] .part-tag {
+  background: #ffffff28;
+  color: #fff;
+}
+.partpick-row {
+  display: none;
+  gap: 8px;
+  align-items: center;
+}
+.partpick {
+  flex: 1;
+  padding: 9px 13px;
+  border: 1px solid #ffffff38;
+  border-radius: 99px;
+  background: #fffdf6;
+  color: var(--ink);
+  font: 700 .82rem Arial, sans-serif;
+}
+.mixer-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 8px 4vw;
+  background: #ede4ce;
+  border-bottom: 1px solid #c9bea3;
+  font-family: Arial, sans-serif;
+}
+.mixer-title {
+  font: 700 .68rem Arial, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: .11em;
+  color: var(--rust);
+  margin-right: 4px;
+}
+.voice-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px 4px 10px;
+  border-radius: 99px;
+  background: #fffdf7;
+  border: 1px solid #bfb396;
+  font-size: .73rem;
+  color: var(--ink);
+  transition: .12s;
+}
+.voice-chip.playing-now {
+  border-color: var(--rust);
+  box-shadow: 0 0 0 2px #b44d2f28;
+}
+.voice-chip.muted {
+  opacity: .5;
+  background: #e5decb;
+}
+.voice-name {
+  font-weight: 700;
+}
+.voice-note {
+  min-width: 28px;
+  font: 700 .68rem monospace;
+  color: var(--rust);
+  text-align: center;
+}
+.mini-btn {
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid #9e937a;
+  background: #f4eedf;
+  color: #3b4942;
+  font: 700 .62rem Arial, sans-serif;
+  cursor: pointer;
+}
+.mini-btn.active-mute {
+  background: #7c3222;
+  border-color: #7c3222;
+  color: #fff;
+}
+.mini-btn.active-solo {
+  background: #d5a638;
+  border-color: #a67c1e;
+  color: #19231f;
+}
+.rehearsal-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 4vw;
+  background: #f3ead5;
+  border-bottom: 1px solid #d8ceb4;
+  font-family: Arial, sans-serif;
+}
+.rehearsal-jumps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.jump-btn {
+  padding: 5px 11px;
+  border-radius: 99px;
+  background: #fffdf6;
+  border: 1px solid #b8ab8d;
+  color: var(--ink);
+  font: 700 .72rem Arial, sans-serif;
+}
+.jump-btn.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #f2d67f;
+}
+.live-tracker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font: 700 .78rem Arial, sans-serif;
+  color: #2f4239;
+}
+.progress-track {
+  width: 150px;
+  height: 7px;
+  border-radius: 99px;
+  background: #d3c7ab;
+  overflow: hidden;
+}
+.progress-fill {
+  width: 0%;
+  height: 100%;
+  background: var(--rust);
+  transition: width .12s linear;
+}
+.live-finger-dock {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+   flex-wrap: wrap;
+  gap: 12px;
+  margin: 16px 3vw 0;
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #fffdf7, #efe5cd);
+  border: 1px solid #c9bea3;
+  box-shadow: 0 6px 18px #41342512;
+}
+.live-finger-dock.visible {
+  display: flex;
+}
+.dock-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.dock-pitch {
+  min-width: 72px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #263b32;
+  color: #f2d67f;
+  text-align: center;
+}
+.dock-pitch strong {
+  display: block;
+  font: 700 1.35rem Georgia, serif;
+}
+.dock-pitch span {
+  font: 700 .62rem Arial, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #cfe0d7;
+}
+.dock-keys {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 700 .75rem Arial, sans-serif;
+}
+.dock-pearl-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  border-radius: 99px;
+  background: #f6f0df;
+  border: 1px solid #b8ab8d;
+}
+.dock-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid #5c4b28;
+  background: #fff;
+}
+.dock-dot.on {
+  background: #243b32;
+}
+.dock-oct {
+  padding: 3px 7px;
+  border-radius: 99px;
+  border: 1px solid #9c7a3d;
+  font: 700 .65rem Arial, sans-serif;
+  color: #7c6b48;
+}
+.dock-oct.on {
+  background: var(--rust);
+  border-color: var(--rust);
+  color: #fff;
+}
+.pages-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-family: Arial, sans-serif;
+}
+.pages-toolbar .hint {
+  font-size: .8rem;
+  color: #5b6961;
+}
+.spread-controls {
+  display: inline-flex;
+  gap: 6px;
+}
+.spread-controls button {
+  padding: 6px 12px;
+  background: #fffdf6;
+  border: 1px solid #b8ab8d;
+  color: var(--ink);
+  font: 700 .72rem Arial, sans-serif;
+}
+.spread-controls button[aria-pressed="true"] {
+  background: #263b32;
+  border-color: #263b32;
+  color: #fff;
+}
+.pages {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+.pages.spread-2 {
+  grid-template-columns: repeat(2, 1fr);
+  align-items: start;
+}
+.pages.fit-compact {
+  max-width: 780px;
+  margin-inline: auto;
+}
+.page-frame {
+  position: relative;
+  background: #fffdf6;
+  border: 1px solid #c9bea3;
+  box-shadow: 0 12px 30px #4134251c;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.page-frame.active-page {
+  border-color: var(--rust);
+  box-shadow: 0 0 0 3px #b44d2f33, 0 12px 30px #4134251c;
+}
+.page-badge {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: #19231fcc;
+  color: #f2d67f;
+  font: 700 .68rem Arial, sans-serif;
+}
+.pages img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+#interactiveWrap {
+  padding-bottom: 18px;
+}
+.measure-hit {
+  fill: transparent;
+  cursor: pointer;
+}
+.measure-hit:hover {
+  fill: #d5a63814;
+}
+.measure-active-bg {
+  fill: #ef5d3512;
+  stroke: #ef5d3555;
+  stroke-width: 1.2;
+}
+.rehearsal-box {
+  fill: #fffdf6;
+  stroke: #19231f;
+  stroke-width: 1.5;
+}
+.rehearsal-text {
+  font: 700 13px Arial, sans-serif;
+  fill: #19231f;
+  text-anchor: middle;
+}
+@media (max-width: 820px) {
+  .part-groups { display: none; }
+  .partpick-row { display: flex; }
+  .pages.spread-2 { grid-template-columns: 1fr; }
+  .status-pill { width: 100%; margin: 0; text-align: center; }
+}
+@media print {
+  .ensemble-controls, .mixer-bar, .rehearsal-strip, .live-finger-dock, .pages-toolbar {
+    display: none !important;
+  }
+  .pages, .pages.spread-2 {
+    display: block;
+  }
+  .page-frame {
+    border: 0;
+    box-shadow: none;
+    page-break-after: always;
+  }
+  .page-frame:last-child {
+    page-break-after: auto;
+  }
+  .page-badge {
+    display: none;
+  }
 }
 </style>
 </head>
@@ -37,82 +464,1000 @@
     <h1>Joy to the World</h1>
     <p class="subtitle" id="subtitle">Freue dich Welt! · Радуйся мир · G. F. Handel, arr. A. Perebikovski</p>
   </div>
-  <div class="badge">Brass · Moderato</div>
+  <div class="badge" id="partBadge">Brass & B♭ Sax · Moderato</div>
 </header>
-<section class="controls" aria-label="Parts">
-  <div class="partbar" id="partbar"></div>
-  <select class="partpick" id="partpick" aria-label="Choose a part"></select>
-  <a class="pdf" id="pdf" href="sheets/score.pdf">PDF</a>
-  <div class="status" id="status">Together · full score</div>
+
+<section class="ensemble-controls" aria-label="Ensemble playback and part controls">
+  <div class="transport-row">
+    <button id="playBtn" type="button">▶ Play</button>
+    <button id="stopBtn" type="button" class="secondary">■ Stop</button>
+
+    <label class="control-pill">
+      Tempo
+      <input id="tempo" type="range" min="60" max="128" value="92">
+      <span id="tempoValue">92 BPM</span>
+    </label>
+
+    <label class="control-pill">
+      Section
+      <select id="sectionSelect" aria-label="Practice section">
+        <option value="all">All Bars (1–28)</option>
+        <option value="intro">Opening (1–10)</option>
+        <option value="section-a">[A] Lyrical Middle (11–15)</option>
+        <option value="section-b">[B] Full Return (16–23)</option>
+        <option value="coda">Coda Finale (24–28)</option>
+      </select>
+    </label>
+
+    <label class="control-pill" id="mixModeWrap">
+      Part Mix
+      <select id="mixMode" aria-label="Selected part audio mix">
+        <option value="boost">Boost Selected Part</option>
+        <option value="minus-one">Minus-One (Mute My Part)</option>
+        <option value="solo-part">Solo Selected Part</option>
+        <option value="equal">Balanced Ensemble</option>
+      </select>
+    </label>
+
+    <label class="control-pill"><input id="loopToggle" type="checkbox"> Loop</label>
+    <label class="control-pill"><input id="clickToggle" type="checkbox" checked> Metronome</label>
+
+    <div class="view-seg" role="group" aria-label="Sheet display mode">
+      <button type="button" data-view="both" aria-pressed="true">Interactive + Sheet</button>
+      <button type="button" data-view="interactive" aria-pressed="false">Interactive SVG</button>
+      <button type="button" data-view="printed" aria-pressed="false">Printed Sheet</button>
+    </div>
+
+    <button id="fingerBtn" type="button" class="secondary">Sax Fingerings</button>
+    <button id="printBtn" type="button" class="secondary">Print</button>
+    <a class="pdf secondary" id="pdf" href="sheets/score.pdf" target="_blank" rel="noopener">PDF</a>
+
+    <div class="status-pill" id="status">Ready · Together (Concert E♭)</div>
+  </div>
+
+  <div class="part-groups" id="partGroups" aria-label="Choose score or instrument part"></div>
+
+  <div class="partpick-row">
+    <select class="partpick" id="partpick" aria-label="Choose a part"></select>
+  </div>
 </section>
-<div class="sheet-wrap"><div class="pages" id="pages"></div></div>
+
+<section class="mixer-bar" aria-label="6-Voice Brass Mixer">
+  <span class="mixer-title">Ensemble Mixer</span>
+  <div id="mixerChips" style="display:flex;flex-wrap:wrap;gap:6px;flex:1"></div>
+  <button id="resetMixerBtn" type="button" class="mini-btn">Reset All Voices</button>
+</section>
+
+<section class="rehearsal-strip" aria-label="Rehearsal marks and measure progress">
+  <div class="rehearsal-jumps">
+    <span class="group-label" style="color:#6c6049">Jump to Bar:</span>
+    <button type="button" class="jump-btn active" data-bar="1">Bar 1 · Opening (f)</button>
+    <button type="button" class="jump-btn" data-bar="5">Bar 5 · Echo (mp)</button>
+    <button type="button" class="jump-btn" data-bar="11">[A] Bar 11 · Trombone/Sax Solo</button>
+    <button type="button" class="jump-btn" data-bar="16">[B] Bar 16 · Tutti Return (f)</button>
+    <button type="button" class="jump-btn" data-bar="24">Bar 24 · Grand Coda</button>
+  </div>
+  <div class="live-tracker">
+    <span id="trackerText">Bar 1 of 28 · Click any measure on the interactive staff to seek</span>
+    <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+</section>
+
+<section class="live-finger-dock" id="liveFingerDock" aria-label="Live B-flat Tenor Saxophone Fingering">
+  <div class="dock-left">
+    <div class="dock-pitch">
+      <strong id="dockNoteName">F5</strong>
+      <span id="dockConcertName">Concert E♭4</span>
+    </div>
+    <div class="dock-keys">
+      <span>Left</span>
+      <span class="dock-pearl-group" id="dockLeftKeys"></span>
+      <span>Right</span>
+      <span class="dock-pearl-group" id="dockRightKeys"></span>
+      <span class="dock-oct" id="dockOctave">OCT</span>
+      <span id="dockModifier" style="color:var(--rust);margin-left:4px">Standard keys</span>
+    </div>
+  </div>
+  <div style="font:italic .82rem Georgia,serif;color:#5a665e">
+    B♭ Treble Clef part — playable directly on <strong>B♭ Tenor Saxophone</strong> or B♭ Trumpet / Euphonium TC
+  </div>
+</section>
+
+<div class="sheet-wrap" id="interactiveWrap">
+  <svg id="sheet" role="img" aria-label="Interactive sheet music"></svg>
+</div>
+
+<div class="sheet-wrap" id="printedWrap">
+  <div class="pages-toolbar">
+    <span class="hint" id="printedCaption">Engraved edition — switch parts above or toggle 2-page spread for wide screens.</span>
+    <div class="spread-controls">
+      <button type="button" id="spreadBtn" aria-pressed="false">2-Page Spread</button>
+      <button type="button" id="compactBtn" aria-pressed="false">Compact Width</button>
+    </div>
+  </div>
+  <div class="pages" id="pages"></div>
+</div>
+
 <section class="notes">
   <article class="card">
-    <h2>Together</h2>
-    <p>The score shows every line at once: trumpet 1, trumpet 2, horn in F, trombone 1, trombone 2, and tuba. Concert pitch is E-flat.</p>
+    <h2>Full Ensemble + B♭ Tenor Sax Integration</h2>
+    <p>The score unites 6 brass lines in <strong>Concert E♭ major</strong>. Any <strong>B♭ Treble</strong> part (<em>Tenor Sax Lead</em>, <em>Trumpet 1 & 2</em>, or <em>Euphonium 1 & 2</em>) is written in <strong>F major (1 flat)</strong> and can be played directly on B♭ Tenor Saxophone with live fingering guidance.</p>
   </article>
   <article class="card">
-    <h2>Same lines, other clefs</h2>
-    <p>Horn in E-flat is the horn part written for E-flat horn. Euphonium 1 and 2 are the trombone lines written in treble clef for B-flat instruments.</p>
+    <h2>Practice Flow & Rehearsal Landmarks</h2>
+    <p>At <strong>[A] (Bar 11)</strong>, Trumpet 1 rests for 5 bars while Trombone 1 / Euphonium 1 carries the lyrical counter-melody. The <strong>Tenor Sax Lead</strong> part automatically cues that solo in bars 11–15 so soloists can play continuously from bar 1 to 28.</p>
   </article>
 </section>
 </main>
+
+<dialog id="fingerDialog">
+  <div class="finger-heading">
+    <div>
+      <span class="eyebrow">B♭ Tenor Saxophone</span>
+      <h2 id="fingerDialogTitle">Fingerings in this part</h2>
+    </div>
+    <button id="closeFinger" aria-label="Close fingering chart">×</button>
+  </div>
+  <p class="finger-help">Dark circles are pressed keys. Click any card to hear its concert pitch; the active note lights up during playback.</p>
+  <div id="fingerGrid" class="finger-grid"></div>
+</dialog>
+
+<script src="../../shared/catalog.js"></script>
+<script src="song.js"></script>
 <script>
-const PARTS = [
-  {id:'score', name:'Together', detail:'Full score', pdf:'sheets/score.pdf', pages:['sheets/score-1.jpg','sheets/score-2.jpg']},
-  {id:'trumpet-1', name:'Trumpet 1', detail:'in B♭', pdf:'sheets/trumpet-1.pdf', pages:['sheets/trumpet-1.jpg']},
-  {id:'trumpet-2', name:'Trumpet 2', detail:'in B♭', pdf:'sheets/trumpet-2.pdf', pages:['sheets/trumpet-2.jpg']},
-  {id:'horn-f', name:'Horn in F', detail:'in F', pdf:'sheets/horn-f.pdf', pages:['sheets/horn-f.jpg']},
-  {id:'horn-eb', name:'Horn in E♭', detail:'in E♭', pdf:'sheets/horn-eb.pdf', pages:['sheets/horn-eb.jpg']},
-  {id:'trombone-1', name:'Trombone 1', detail:'bass clef', pdf:'sheets/trombone-1.pdf', pages:['sheets/trombone-1.jpg']},
-  {id:'trombone-2', name:'Trombone 2', detail:'bass clef', pdf:'sheets/trombone-2.pdf', pages:['sheets/trombone-2.jpg']},
-  {id:'euphonium-1', name:'Euphonium 1', detail:'treble clef', pdf:'sheets/euphonium-1.pdf', pages:['sheets/euphonium-1.jpg']},
-  {id:'euphonium-2', name:'Euphonium 2', detail:'treble clef', pdf:'sheets/euphonium-2.pdf', pages:['sheets/euphonium-2.jpg']},
-  {id:'tuba', name:'Tuba', detail:'bass clef', pdf:'sheets/tuba.pdf', pages:['sheets/tuba.jpg']}
-];
-const bar = document.getElementById('partbar');
-const pick = document.getElementById('partpick');
-const pages = document.getElementById('pages');
-const pdf = document.getElementById('pdf');
-const status = document.getElementById('status');
-const buttons = new Map();
-PARTS.forEach(part => {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'secondary';
-  button.textContent = part.name;
-  button.setAttribute('aria-pressed', 'false');
-  button.title = part.detail;
-  button.addEventListener('click', () => show(part.id, true));
-  bar.append(button);
-  buttons.set(part.id, button);
-  const option = document.createElement('option');
-  option.value = part.id;
-  option.textContent = part.id === 'score' ? 'Together · full score' : (part.name.includes(' in ') ? part.name : `${part.name} · ${part.detail}`);
-  pick.append(option);
-});
-pick.addEventListener('change', () => show(pick.value, true));
-function show(id, push) {
-  const part = PARTS.find(item => item.id === id) || PARTS[0];
-  buttons.forEach((button, key) => {
-    const on = key === part.id;
-    button.setAttribute('aria-pressed', on ? 'true' : 'false');
-    button.classList.toggle('secondary', !on);
+(() => {
+  const S = window.ENSEMBLE_SONG;
+  const NS = 'http://www.w3.org/2000/svg';
+  const $ = id => document.getElementById(id);
+  const PITCH_INDEX = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
+  const SEMIS = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+  const NAMES = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
+
+  const svg = $('sheet');
+  const partGroupsEl = $('partGroups');
+  const partPickEl = $('partpick');
+  const pagesEl = $('pages');
+  const pdfEl = $('pdf');
+  const statusEl = $('status');
+  const playBtn = $('playBtn');
+  const stopBtn = $('stopBtn');
+  const tempoInput = $('tempo');
+  const tempoValue = $('tempoValue');
+  const sectionSelect = $('sectionSelect');
+  const mixModeSelect = $('mixMode');
+  const loopToggle = $('loopToggle');
+  const clickToggle = $('clickToggle');
+  const fingerBtn = $('fingerBtn');
+  const fingerDialog = $('fingerDialog');
+  const fingerGrid = $('fingerGrid');
+  const liveFingerDock = $('liveFingerDock');
+  const trackerText = $('trackerText');
+  const progressFill = $('progressFill');
+  const spreadBtn = $('spreadBtn');
+  const compactBtn = $('compactBtn');
+
+  let currentPart = S.parts[0];
+  let viewMode = 'both';
+  let spread2 = true;
+  let compactFit = false;
+  let currentBar = 0; // 0-indexed measure cursor for pause/resume/seek
+  let playing = false;
+  let paused = false;
+  let audio = null;
+  let timers = [];
+  let noteEls = [];
+  let barBoxEls = [];
+  const partButtons = new Map();
+  const fingerCards = new Map();
+  const voiceState = new Map();
+  const voiceChips = new Map();
+
+  S.voices.forEach(v => {
+    voiceState.set(v.id, { muted: false, solo: false });
   });
-  pdf.href = part.pdf;
-  pick.value = part.id;
-  status.textContent = part.id === 'score' || part.name.includes(' in ') ? (part.id === 'score' ? 'Together · full score' : part.name) : `${part.name} · ${part.detail}`;
-  pages.replaceChildren();
-  part.pages.forEach((src, index) => {
-    const img = document.createElement('img');
-    img.src = src;
-    img.alt = index ? `${part.name}, page ${index + 1}` : `${part.name} sheet`;
-    pages.append(img);
+
+  function parsePitch(p) {
+    return {
+      letter: p[0],
+      sharp: p.includes('#'),
+      flat: p.includes('b'),
+      octave: +p.at(-1)
+    };
+  }
+
+  function midi(p) {
+    const q = parsePitch(p);
+    return 12 * (q.octave + 1) + SEMIS[q.letter] + (q.sharp ? 1 : 0) - (q.flat ? 1 : 0);
+  }
+
+  function hz(m) {
+    return 440 * Math.pow(2, (m - 69) / 12);
+  }
+
+  function formatPitch(p) {
+    return p.replace('#', '♯').replace('b', '♭');
+  }
+
+  function concertNameFromMidi(m) {
+    const pc = ((m % 12) + 12) % 12;
+    const oct = Math.floor(m / 12) - 1;
+    return `${NAMES[pc]}${oct}`;
+  }
+
+  function el(name, attrs = {}, text = '') {
+    const node = document.createElementNS(NS, name);
+    for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+    if (text) node.textContent = text;
+    return node;
+  }
+
+  // Staff Y coordinate supporting both Treble Clef (bottom line E4) and Bass Clef (bottom line G2)
+  function yFor(p, base, clef = 'treble') {
+    const q = parsePitch(p);
+    const step = q.octave * 7 + PITCH_INDEX[q.letter];
+    const refStep = clef === 'bass' ? (2 * 7 + PITCH_INDEX.G) : (4 * 7 + PITCH_INDEX.E);
+    return base + 20 - (step - refStep) * 5;
+  }
+
+  // Accurate key signature staff Y positions
+  function keySigY(acc, clef, base) {
+    const mapTreble = { 'F#': base - 20, 'C#': base - 5, 'G#': base - 25, 'Bb': base, 'Eb': base - 15, 'Ab': base + 5, 'Db': base - 10 };
+    const mapBass = { 'F#': base - 10, 'C#': base + 5, 'G#': base - 15, 'Bb': base + 10, 'Eb': base - 5, 'Ab': base + 15, 'Db': base };
+    return (clef === 'bass' ? mapBass[acc] : mapTreble[acc]) ?? (base - 10);
+  }
+
+  // Tenor Saxophone fingering lookup
+  function fingering(p) {
+    const n = midi(p);
+    const pc = ((n % 12) + 12) % 12;
+    const map = {
+      1: [[], 'Open (C♯)'],
+      2: [[1, 1, 1, 1, 1, 1], ''],
+      3: [[1, 1, 1, 1, 1, 1], '+ E♭ pinky'],
+      4: [[1, 1, 1, 1, 1, 0], ''],
+      5: [[1, 1, 1, 1, 0, 0], ''],
+      6: [[1, 1, 1, 0, 1, 0], 'F♯ key'],
+      7: [[1, 1, 1, 0, 0, 0], ''],
+      8: [[1, 1, 1, 0, 0, 0], '+ G♯ pinky'],
+      9: [[1, 1, 0, 0, 0, 0], ''],
+      10: [[1, 0, 0, 0, 0, 0], '+ Bis B♭ / Side B♭'],
+      11: [[1, 0, 0, 0, 0, 0], '']
+    };
+    if (pc === 0) {
+      return n < 72
+        ? { keys: [1, 1, 1, 1, 1, 1], modifier: '+ Low C pinky', octave: false }
+        : { keys: [0, 1, 0, 0, 0, 0], modifier: 'Middle C', octave: n >= 74 };
+    }
+    const [keys, modifier] = map[pc];
+    const filled = [0, 1, 2, 3, 4, 5].map(i => keys[i] ? 1 : 0);
+    return { keys: filled, modifier, octave: n >= 74 };
+  }
+
+  function updateLiveFingerDock(pitch) {
+    if (!currentPart.supportsSaxFingering) {
+      liveFingerDock.classList.remove('visible');
+      return;
+    }
+    liveFingerDock.classList.add('visible');
+    if (!pitch || pitch === 'R') {
+      $('dockNoteName').textContent = 'Rest';
+      $('dockConcertName').textContent = 'Breathe / Count';
+      $('dockModifier').textContent = 'No keys pressed';
+      return;
+    }
+    const f = fingering(pitch);
+    const concertM = midi(pitch) + (currentPart.semitonesToConcert || -2);
+    $('dockNoteName').textContent = formatPitch(pitch);
+    $('dockConcertName').textContent = `Sounds ${concertNameFromMidi(concertM)}`;
+    $('dockLeftKeys').innerHTML = f.keys.slice(0, 3).map(on => `<i class="dock-dot ${on ? 'on' : ''}"></i>`).join('');
+    $('dockRightKeys').innerHTML = f.keys.slice(3, 6).map(on => `<i class="dock-dot ${on ? 'on' : ''}"></i>`).join('');
+    $('dockOctave').classList.toggle('on', !!f.octave);
+    $('dockModifier').textContent = f.modifier || 'Standard keys';
+  }
+
+  function buildFingerChart() {
+    fingerGrid.replaceChildren();
+    fingerCards.clear();
+    if (!currentPart.supportsSaxFingering) return;
+    $('fingerDialogTitle').textContent = `Fingerings · ${currentPart.name} (${currentPart.writtenKey})`;
+    const pitches = [...new Set(currentPart.bars.flat().map(n => n[0]).filter(p => p !== 'R'))].sort((a, b) => midi(a) - midi(b));
+    pitches.forEach(p => {
+      const f = fingering(p);
+      const card = document.createElement('article');
+      card.className = 'finger-card';
+      card.style.cursor = 'pointer';
+      card.title = 'Click to audition note';
+      card.innerHTML = `
+        <div class="finger-note"><strong>${formatPitch(p)}</strong></div>
+        <div class="sax-diagram">
+          <span class="octave-lever ${f.octave ? 'on' : ''}">OCT</span>
+          <span class="hand-tag left">LEFT</span>
+          <span class="hand-tag right">RIGHT</span>
+          <div class="sax-body">${f.keys.map((on, i) => `<i class="pearl ${on ? 'on' : ''}" aria-label="${i < 3 ? 'Left' : 'Right'} key ${i % 3 + 1}"></i>`).join('')}</div>
+        </div>
+        <div class="modifier">${f.modifier || 'Standard keys'}</div>
+      `;
+      card.addEventListener('click', () => previewSingleNote(p));
+      fingerGrid.append(card);
+      fingerCards.set(p, card);
+    });
+  }
+
+  function highlightFingering(pitch) {
+    fingerCards.forEach((card, p) => card.classList.toggle('current', p === pitch));
+    updateLiveFingerDock(pitch);
+  }
+
+  function drawInteractiveSheet() {
+    const bars = currentPart.bars;
+    const clef = currentPart.clef === 'bass' ? 'bass' : 'treble';
+    const systems = Math.ceil(bars.length / 4);
+    const systemGap = 122;
+    const height = 105 + systems * systemGap;
+    svg.setAttribute('viewBox', `0 0 1100 ${height}`);
+    svg.replaceChildren();
+    noteEls = [];
+    barBoxEls = [];
+
+    const headerLabel = currentPart.id === 'score'
+      ? `${S.title} — Trumpet 1 Lead Guide (Full 6-Part Audio Active)`
+      : `${S.title} — ${currentPart.name} (${currentPart.detail})`;
+    svg.append(el('text', { x: 50, y: 31, class: 'title-svg' }, headerLabel));
+    svg.append(el('text', { x: 50, y: 54, class: 'meta' }, `${S.direction} · Click any measure to play from that bar`));
+    svg.append(el('text', { x: 830, y: 54, class: 'meta' }, `♩ = ${tempoInput.value} · ${S.time[0]}/${S.time[1]} · ${currentPart.writtenKey}`));
+
+    const left = 55;
+    const width = 990;
+    const barW = width / 4;
+    const keySig = currentPart.keySignature || [];
+
+    bars.forEach((bar, bi) => {
+      const sys = Math.floor(bi / 4);
+      const slot = bi % 4;
+      const top = 74 + sys * systemGap;
+      const base = top + 50;
+      const bx = left + slot * barW;
+      const barsInSys = Math.min(4, bars.length - sys * 4);
+      const sysWidth = barsInSys * barW;
+
+      if (slot === 0) {
+        for (let l = 0; l < 5; l++) {
+          svg.append(el('line', {
+            x1: left,
+            y1: base - 20 + l * 10,
+            x2: left + sysWidth,
+            y2: base - 20 + l * 10,
+            class: 'staff'
+          }));
+        }
+        const clefGlyph = clef === 'bass' ? '𝄢' : '𝄞';
+        const clefY = clef === 'bass' ? base + 10 : base + 16;
+        const clefSize = clef === 'bass' ? 40 : 54;
+        svg.append(el('text', { x: left + 4, y: clefY, 'font-size': clefSize, 'font-family': 'Georgia' }, clefGlyph));
+
+        keySig.forEach((acc, i) => {
+          svg.append(el('text', {
+            x: left + 42 + i * 10,
+            y: keySigY(acc, clef, base) + 5,
+            'font-size': 16
+          }, acc.includes('#') ? '♯' : '♭'));
+        });
+
+        if (sys === 0) {
+          const timeX = left + 52 + keySig.length * 10;
+          svg.append(el('text', { x: timeX, y: base - 2, 'font-size': 15, 'font-weight': 'bold' }, S.time[0]));
+          svg.append(el('text', { x: timeX, y: base + 15, 'font-size': 15, 'font-weight': 'bold' }, S.time[1]));
+        }
+      }
+
+      const barBg = el('rect', {
+        x: bx,
+        y: base - 32,
+        width: barW,
+        height: 68,
+        rx: 4,
+        class: bi === currentBar ? 'measure-active-bg' : 'measure-hit'
+      });
+      barBg.addEventListener('click', () => seekToBar(bi));
+      svg.append(barBg);
+      barBoxEls.push(barBg);
+
+      svg.append(el('line', { x1: bx, y1: base - 20, x2: bx, y2: base + 20, class: 'barline' }));
+      svg.append(el('text', { x: bx + 5, y: top + 12, class: 'measure-no' }, String(bi + 1)));
+
+      // Rehearsal mark box ([A], [B], Coda)
+      const mark = S.rehearsalMarks[bi + 1];
+      if (mark && mark !== 'Intro') {
+        const w = mark.length > 1 ? 38 : 20;
+        svg.append(el('rect', { x: bx + 22, y: top - 4, width: w, height: 18, rx: 3, class: 'rehearsal-box' }));
+        svg.append(el('text', { x: bx + 22 + w / 2, y: top + 10, class: 'rehearsal-text' }, mark));
+      }
+
+      const lead = slot === 0 ? (58 + keySig.length * 10 + (sys === 0 ? 18 : 0)) : 16;
+      const start = bx + lead;
+      const usable = barW - lead - 12;
+      let cursor = 0;
+
+      bar.forEach(([pitch, dur]) => {
+        const x = start + (cursor + dur / 2) / S.unitsPerBar * usable;
+        const g = el('g', { class: 'note', 'data-index': noteEls.length, 'data-bar': bi });
+        g.style.cursor = 'pointer';
+        g.addEventListener('click', e => {
+          e.stopPropagation();
+          seekToBar(bi, pitch);
+        });
+
+        if (pitch === 'R') {
+          if (dur >= 16) {
+            g.append(el('rect', { x: x - 7, y: base - 10, width: 14, height: 6, fill: '#19231f' }));
+          } else if (dur >= 8) {
+            g.append(el('rect', { x: x - 7, y: base - 6, width: 14, height: 6, fill: '#19231f' }));
+          } else {
+            g.append(el('text', { x, y: base + 7, 'font-size': 24, 'text-anchor': 'middle', fill: '#19231f' }, dur <= 2 ? '𝄾' : '𝄽'));
+          }
+          g.append(el('text', { x, y: base + 46, class: 'note-label' }, dur >= 16 ? 'bar rest' : 'rest'));
+        } else {
+          const y = yFor(pitch, base, clef);
+          const q = parsePitch(pitch);
+          if (q.sharp && !keySig.includes(`${q.letter}#`)) {
+            g.append(el('text', { x: x - 13, y: y + 5, 'font-size': 16 }, '♯'));
+          }
+          if (q.flat && !keySig.includes(`${q.letter}b`)) {
+            g.append(el('text', { x: x - 13, y: y + 5, 'font-size': 16 }, '♭'));
+          }
+          for (let ly = base - 30; ly >= y; ly -= 10) {
+            svg.append(el('line', { x1: x - 9, y1: ly, x2: x + 9, y2: ly, class: 'staff' }));
+          }
+          for (let ly = base + 30; ly <= y; ly += 10) {
+            svg.append(el('line', { x1: x - 9, y1: ly, x2: x + 9, y2: ly, class: 'staff' }));
+          }
+
+          // In 16-units/bar (4/4): whole=16, dotted-half=12, half=8, dotted-quarter=6, quarter=4, dotted-8th=3, 8th=2, 16th=1
+          const openHead = dur >= 8;
+          g.append(el('ellipse', {
+            cx: x,
+            cy: y,
+            rx: 6.6,
+            ry: 4.6,
+            transform: `rotate(-18 ${x} ${y})`,
+            class: openHead ? 'note-head half' : 'note-head'
+          }));
+
+          // Draw stem for all notes shorter than a whole note (dur < 16)
+          if (dur < 16) {
+            const up = y >= base;
+            const stemX = x + (up ? 5.8 : -5.8);
+            const stemEnd = y + (up ? -30 : 30);
+            g.append(el('line', { x1: stemX, y1: y, x2: stemX, y2: stemEnd, class: 'note-stem' }));
+            if (dur <= 3) {
+              const flagPath = up
+                ? `M${stemX} ${stemEnd} q11 6 5 16`
+                : `M${stemX} ${stemEnd} q11 -6 5 -16`;
+              g.append(el('path', { d: flagPath, class: 'note-flag' }));
+            }
+            if (dur === 1) {
+              const flag2Y = stemEnd + (up ? 7 : -7);
+              const flag2Path = up
+                ? `M${stemX} ${flag2Y} q11 6 5 16`
+                : `M${stemX} ${flag2Y} q11 -6 5 -16`;
+              g.append(el('path', { d: flag2Path, class: 'note-flag' }));
+            }
+          }
+
+          // Augmentation dot for dotted half (12), dotted quarter (6), dotted eighth (3)
+          if (dur === 12 || dur === 6 || dur === 3) {
+            g.append(el('circle', { cx: x + 11, cy: y - 1, r: 1.8, fill: '#19231f' }));
+          }
+
+          g.append(el('text', { x, y: base + 46, class: 'note-label' }, formatPitch(pitch)));
+          g.append(el('circle', { cx: x, y: y, r: 8, class: 'pulse' }));
+        }
+
+        svg.append(g);
+        noteEls.push({ el: g, barIndex: bi, pitch, dur });
+        cursor += dur;
+      });
+
+      if (bi === bars.length - 1 || slot === barsInSys - 1) {
+        svg.append(el('line', {
+          x1: bx + barW,
+          y1: base - 20,
+          x2: bx + barW,
+          y2: base + 20,
+          class: 'barline'
+        }));
+      }
+      if (bi === bars.length - 1) {
+        svg.append(el('line', {
+          x1: bx + barW - 4,
+          y1: base - 20,
+          x2: bx + barW - 4,
+          y2: base + 20,
+          stroke: '#35423c',
+          'stroke-width': 4
+        }));
+      }
+    });
+
+    svg.append(el('text', { x: 50, y: height - 18, class: 'meta' }, `${S.credit} · ${currentPart.name} (${currentPart.writtenKey})`));
+  }
+
+  function renderPrintedPages() {
+    pagesEl.replaceChildren();
+    const isMultiPage = currentPart.pages.length > 1;
+    spreadBtn.style.display = isMultiPage ? 'inline-block' : 'none';
+    pagesEl.classList.toggle('spread-2', isMultiPage && spread2);
+    pagesEl.classList.toggle('fit-compact', compactFit);
+    spreadBtn.setAttribute('aria-pressed', String(isMultiPage && spread2));
+    compactBtn.setAttribute('aria-pressed', String(compactFit));
+
+    $('printedCaption').textContent = currentPart.id === 'tenor-sax'
+      ? 'Tenor Sax Lead uses Trumpet 1 (Bars 1–10 & 16–28) + Euphonium 1 Solo ([A] Bars 11–15), both engraved in B♭ Treble Clef.'
+      : `Engraved part: ${currentPart.name} (${currentPart.detail})`;
+
+    currentPart.pages.forEach((src, index) => {
+      const frame = document.createElement('div');
+      frame.className = 'page-frame';
+      frame.dataset.pageIndex = index;
+
+      const badge = document.createElement('span');
+      badge.className = 'page-badge';
+      if (currentPart.id === 'score') {
+        badge.textContent = index === 0 ? 'Page 1 · Bars 1–10' : 'Page 2 · Bars 11–28 ([A] & [B])';
+      } else if (currentPart.id === 'tenor-sax') {
+        badge.textContent = index === 0 ? 'Sheet 1 · Lead Melody (Trumpet 1 in B♭)' : 'Sheet 2 · [A] Solo Line (Euphonium 1 in B♭)';
+      } else {
+        badge.textContent = `${currentPart.name} · Bars 1–28`;
+      }
+
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = `${currentPart.name} sheet page ${index + 1}`;
+      frame.append(badge, img);
+      pagesEl.append(frame);
+    });
+  }
+
+  function updateViewVisibility() {
+    $('interactiveWrap').style.display = (viewMode === 'both' || viewMode === 'interactive') ? 'block' : 'none';
+    $('printedWrap').style.display = (viewMode === 'both' || viewMode === 'printed') ? 'block' : 'none';
+    document.querySelectorAll('.view-seg button').forEach(btn => {
+      btn.setAttribute('aria-pressed', String(btn.dataset.view === viewMode));
+    });
+  }
+
+  function buildPartSelectors() {
+    const groups = new Map();
+    S.parts.forEach(part => {
+      if (!groups.has(part.group)) groups.set(part.group, []);
+      groups.get(part.group).push(part);
+    });
+
+    partGroupsEl.replaceChildren();
+    partPickEl.replaceChildren();
+
+    for (const [groupName, items] of groups.entries()) {
+      const groupDiv = document.createElement('div');
+      groupDiv.className = 'part-group';
+      const label = document.createElement('span');
+      label.className = 'group-label';
+      label.textContent = groupName;
+      groupDiv.append(label);
+
+      const optGroup = document.createElement('optgroup');
+      optGroup.label = groupName;
+
+      items.forEach(part => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'part-btn';
+        btn.setAttribute('aria-pressed', 'false');
+        btn.innerHTML = `<span>${part.name}</span><span class="part-tag">${part.badge}</span>`;
+        btn.addEventListener('click', () => selectPart(part.id, true));
+        groupDiv.append(btn);
+        partButtons.set(part.id, btn);
+
+        const opt = document.createElement('option');
+        opt.value = part.id;
+        opt.textContent = `${part.name} · ${part.badge}`;
+        optGroup.append(opt);
+      });
+
+      partGroupsEl.append(groupDiv);
+      partPickEl.append(optGroup);
+    }
+
+    partPickEl.addEventListener('change', () => selectPart(partPickEl.value, true));
+  }
+
+  function buildMixer() {
+    const container = $('mixerChips');
+    container.replaceChildren();
+    S.voices.forEach(voice => {
+      const chip = document.createElement('div');
+      chip.className = 'voice-chip';
+      chip.innerHTML = `
+        <span class="voice-name">${voice.short}</span>
+        <span class="voice-note" data-voice-note="${voice.id}">—</span>
+        <button type="button" class="mini-btn" data-mute="${voice.id}" title="Mute ${voice.name}">M</button>
+        <button type="button" class="mini-btn" data-solo="${voice.id}" title="Solo ${voice.name}">S</button>
+      `;
+      chip.querySelector(`[data-mute="${voice.id}"]`).addEventListener('click', () => {
+        const st = voiceState.get(voice.id);
+        st.muted = !st.muted;
+        if (st.muted) st.solo = false;
+        syncMixerUI();
+        if (playing) schedulePlayback(currentBar, false);
+      });
+      chip.querySelector(`[data-solo="${voice.id}"]`).addEventListener('click', () => {
+        const st = voiceState.get(voice.id);
+        st.solo = !st.solo;
+        if (st.solo) st.muted = false;
+        syncMixerUI();
+        if (playing) schedulePlayback(currentBar, false);
+      });
+      container.append(chip);
+      voiceChips.set(voice.id, chip);
+    });
+
+    $('resetMixerBtn').addEventListener('click', () => {
+      S.voices.forEach(v => voiceState.set(v.id, { muted: false, solo: false }));
+      syncMixerUI();
+      if (playing) schedulePlayback(currentBar, false);
+    });
+  }
+
+  function syncMixerUI() {
+    const anySolo = [...voiceState.values()].some(v => v.solo);
+    S.voices.forEach(v => {
+      const st = voiceState.get(v.id);
+      const chip = voiceChips.get(v.id);
+      const effMuted = st.muted || (anySolo && !st.solo);
+      chip.classList.toggle('muted', effMuted);
+      chip.querySelector(`[data-mute="${v.id}"]`).classList.toggle('active-mute', st.muted);
+      chip.querySelector(`[data-solo="${v.id}"]`).classList.toggle('active-solo', st.solo);
+    });
+  }
+
+  function selectPart(id, updateHash) {
+    currentPart = S.parts.find(item => item.id === id) || S.parts[0];
+    partButtons.forEach((btn, key) => {
+      btn.setAttribute('aria-pressed', String(key === currentPart.id));
+    });
+    partPickEl.value = currentPart.id;
+    pdfEl.href = currentPart.pdf;
+    $('partBadge').textContent = `${currentPart.name} · ${currentPart.badge}`;
+    $('mixModeWrap').style.display = currentPart.id === 'score' ? 'none' : 'inline-flex';
+    fingerBtn.style.display = currentPart.supportsSaxFingering ? 'inline-block' : 'none';
+
+    buildFingerChart();
+    drawInteractiveSheet();
+    renderPrintedPages();
+    const firstPitch = currentPart.bars[currentBar]?.find(n => n[0] !== 'R')?.[0] || null;
+    updateLiveFingerDock(firstPitch);
+
+    if (!playing) {
+      statusEl.textContent = `Ready · ${currentPart.name} (${currentPart.writtenKey})`;
+    } else {
+      schedulePlayback(currentBar, false);
+    }
+    if (updateHash) history.replaceState(null, '', '#' + currentPart.id);
+  }
+
+  function ensureAudio() {
+    if (!audio || audio.state === 'closed') {
+      audio = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audio.state === 'suspended') audio.resume();
+  }
+
+  function playTone(freq, start, duration, volume = 0.05, type = 'sawtooth') {
+    if (!audio || volume <= 0.0005) return;
+    const osc = audio.createOscillator();
+    const gain = audio.createGain();
+    const filter = audio.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = type === 'sawtooth' ? 1950 : 2400;
+
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(volume, start + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + Math.max(0.045, duration - 0.02));
+    osc.connect(filter).connect(gain).connect(audio.destination);
+    osc.start(start);
+    osc.stop(start + duration);
+  }
+
+  function playClick(t, accent) {
+    playTone(accent ? 1040 : 760, t, 0.04, accent ? 0.055 : 0.028, 'square');
+  }
+
+  function previewSingleNote(pitch) {
+    if (!pitch || pitch === 'R') return;
+    ensureAudio();
+    const semitones = currentPart.semitonesToConcert ?? -2;
+    const concertMidi = midi(pitch) + semitones;
+    playTone(hz(concertMidi), audio.currentTime + 0.02, 0.55, 0.085, 'triangle');
+    highlightFingering(pitch);
+  }
+
+  function clearTimers() {
+    timers.forEach(clearTimeout);
+    timers = [];
+    if (audio) {
+      audio.close().catch(() => {});
+      audio = null;
+    }
+  }
+
+  function effectiveVoiceGain(voice, barIdx) {
+    const st = voiceState.get(voice.id);
+    const anySolo = [...voiceState.values()].some(v => v.solo);
+    if (st.muted || (anySolo && !st.solo)) return 0;
+
+    let g = voice.gain;
+    // Dynamic shading from score: bars 5-7 mp, bars 11-14 mf, bar 15 p, bars 20-22 mp
+    const barNum = barIdx + 1;
+    if ((barNum >= 5 && barNum <= 7) || (barNum >= 20 && barNum <= 22)) g *= 0.72;
+    else if (barNum === 15) g *= 0.58;
+
+    if (currentPart.id !== 'score') {
+      const activeVoiceId = currentPart.id === 'tenor-sax' && barNum >= 11 && barNum <= 15
+        ? 'trombone-1'
+        : currentPart.voiceId;
+      const mode = mixModeSelect.value;
+      if (mode === 'minus-one' && voice.id === activeVoiceId) return 0;
+      if (mode === 'solo-part') return voice.id === activeVoiceId ? g * 1.4 : 0;
+      if (mode === 'boost') g *= (voice.id === activeVoiceId ? 1.38 : 0.68);
+    }
+    return g;
+  }
+
+  function getSelectedSection() {
+    return S.sections.find(sec => sec.id === sectionSelect.value) || S.sections[0];
+  }
+
+  function highlightActiveMeasure(barIdx) {
+    currentBar = barIdx;
+    barBoxEls.forEach((rect, idx) => {
+      rect.setAttribute('class', idx === barIdx ? 'measure-active-bg' : 'measure-hit');
+    });
+    const pct = ((barIdx + 1) / 28) * 100;
+    progressFill.style.width = `${pct}%`;
+
+    // Highlight active printed score page (Page 1 = bars 1-10, Page 2 = bars 11-28)
+    const frames = pagesEl.querySelectorAll('.page-frame');
+    frames.forEach((f, idx) => {
+      const onPage = currentPart.id === 'score'
+        ? (idx === 0 ? barIdx < 10 : barIdx >= 10)
+        : (currentPart.id === 'tenor-sax' ? (idx === 0 ? (barIdx < 10 || barIdx >= 15) : (barIdx >= 10 && barIdx < 15)) : true);
+      f.classList.toggle('active-page', playing && onPage);
+    });
+
+    // Update active rehearsal jump pill
+    document.querySelectorAll('.jump-btn').forEach(btn => {
+      const b = +btn.dataset.bar;
+      const active = (b === 1 && barIdx < 4) ||
+                     (b === 5 && barIdx >= 4 && barIdx < 10) ||
+                     (b === 11 && barIdx >= 10 && barIdx < 15) ||
+                     (b === 16 && barIdx >= 15 && barIdx < 23) ||
+                     (b === 24 && barIdx >= 23);
+      btn.classList.toggle('active', active);
+    });
+  }
+
+  function pausePlayback() {
+    clearTimers();
+    playing = false;
+    paused = true;
+    playBtn.textContent = `▶ Resume (Bar ${currentBar + 1})`;
+    statusEl.textContent = `Paused · Bar ${currentBar + 1} of 28`;
+  }
+
+  function stopPlayback() {
+    clearTimers();
+    playing = false;
+    paused = false;
+    const sec = getSelectedSection();
+    currentBar = sec.startBar - 1;
+    playBtn.textContent = '▶ Play';
+    noteEls.forEach(n => n.el.setAttribute('class', 'note'));
+    S.voices.forEach(v => {
+      const el = document.querySelector(`[data-voice-note="${v.id}"]`);
+      if (el) el.textContent = '—';
+      voiceChips.get(v.id)?.classList.remove('playing-now');
+    });
+    highlightActiveMeasure(currentBar);
+    statusEl.textContent = `Ready · ${currentPart.name} (${currentPart.writtenKey})`;
+  }
+
+  function seekToBar(barIdx, previewPitch = null) {
+    currentBar = Math.max(0, Math.min(27, barIdx));
+    highlightActiveMeasure(currentBar);
+    trackerText.textContent = `Bar ${currentBar + 1} of 28 · ${currentPart.name}`;
+    if (playing) {
+      schedulePlayback(currentBar, false);
+    } else {
+      if (paused) playBtn.textContent = `▶ Resume (Bar ${currentBar + 1})`;
+      if (previewPitch && previewPitch !== 'R') {
+        previewSingleNote(previewPitch);
+      } else {
+        const firstPitch = currentPart.bars[currentBar]?.find(n => n[0] !== 'R')?.[0] || null;
+        highlightFingering(firstPitch);
+      }
+    }
+  }
+
+  function schedulePlayback(startBarIndex = currentBar, withCountIn = true) {
+    clearTimers();
+    ensureAudio();
+    playing = true;
+    paused = false;
+    playBtn.textContent = '❚❚ Pause';
+
+    const sec = getSelectedSection();
+    const endBarIndex = Math.max(startBarIndex, sec.endBar - 1);
+    const bpm = +tempoInput.value;
+    const beat = 60 / bpm;
+    const unit = beat / S.beatUnit; // 1 sixteenth-note duration in seconds
+    const countInBeats = withCountIn ? S.beatsPerBar : 0;
+    const countInSec = countInBeats * beat;
+    const start = audio.currentTime + 0.08;
+    const useClick = clickToggle.checked;
+
+    if (withCountIn && useClick) {
+      for (let i = 0; i < countInBeats; i++) {
+        playClick(start + i * beat, i === 0);
+      }
+      statusEl.textContent = `Count-in · Starting at Bar ${startBarIndex + 1}`;
+    }
+
+    let elapsedUnits = 0;
+    for (let bi = startBarIndex; bi <= endBarIndex; bi++) {
+      const barStart = start + countInSec + elapsedUnits * unit;
+
+      if (useClick) {
+        for (let b = 0; b < S.beatsPerBar; b++) {
+          playClick(barStart + b * beat, b === 0);
+        }
+      }
+
+      // Schedule all 6 ensemble voices
+      S.voices.forEach(voice => {
+        const gain = effectiveVoiceGain(voice, bi);
+        let vCursor = 0;
+        voice.bars[bi].forEach(([vPitch, vDur]) => {
+          const noteTime = barStart + vCursor * unit;
+          const ms = (noteTime - audio.currentTime) * 1000;
+          if (vPitch !== 'R' && gain > 0) {
+            const concertM = midi(vPitch) + voice.semitonesToConcert;
+            playTone(hz(concertM), noteTime, vDur * unit * 0.91, gain, voice.wave);
+          }
+          timers.push(setTimeout(() => {
+            const noteSpan = document.querySelector(`[data-voice-note="${voice.id}"]`);
+            if (noteSpan) noteSpan.textContent = vPitch === 'R' ? '·' : formatPitch(vPitch);
+            voiceChips.get(voice.id)?.classList.toggle('playing-now', vPitch !== 'R' && gain > 0);
+          }, Math.max(0, ms)));
+          vCursor += vDur;
+        });
+      });
+
+      // Schedule visual note tracking for the currently selected part
+      let pCursor = 0;
+      currentPart.bars[bi].forEach(([pitch, dur]) => {
+        const noteTime = barStart + pCursor * unit;
+        const ms = (noteTime - audio.currentTime) * 1000;
+        const beatNum = Math.floor(pCursor / S.beatUnit) + 1;
+        timers.push(setTimeout(() => {
+          highlightActiveMeasure(bi);
+          noteEls.forEach(item => {
+            const isPast = item.barIndex < bi;
+            const isCurrent = item.barIndex === bi && item.pitch === pitch && Math.abs(pCursor - pCursor) < 0.1;
+            item.el.classList.toggle('past', isPast);
+          });
+          // Highlight specific note element in this bar
+          const barNotes = noteEls.filter(n => n.barIndex === bi);
+          let c = 0;
+          barNotes.forEach(n => {
+            const active = c === pCursor;
+            n.el.setAttribute('class', active ? 'note active' : (c < pCursor ? 'note past' : 'note'));
+            if (active) {
+              const pulse = n.el.querySelector('.pulse');
+              if (pulse) {
+                pulse.classList.remove('on');
+                void pulse.getBBox();
+                pulse.classList.add('on');
+              }
+              if (viewMode !== 'printed') {
+                n.el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              }
+            }
+            c += n.dur;
+          });
+
+          highlightFingering(pitch === 'R' ? null : pitch);
+          const reh = S.rehearsalMarks[bi + 1] ? `[${S.rehearsalMarks[bi + 1]}] ` : '';
+          statusEl.textContent = `${reh}Bar ${bi + 1}/28 · Beat ${beatNum} · ${pitch === 'R' ? 'Rest' : formatPitch(pitch)}`;
+          trackerText.textContent = `${reh}Bar ${bi + 1} of 28 · Beat ${beatNum} · ${currentPart.name}`;
+        }, Math.max(0, ms)));
+        pCursor += dur;
+      });
+
+      elapsedUnits += S.unitsPerBar;
+    }
+
+    const totalMs = (countInSec + elapsedUnits * unit) * 1000 + 120;
+    timers.push(setTimeout(() => {
+      if (loopToggle.checked) {
+        const secNow = getSelectedSection();
+        schedulePlayback(secNow.startBar - 1, false);
+      } else {
+        stopPlayback();
+      }
+    }, totalMs));
+  }
+
+  // Wire up controls
+  playBtn.addEventListener('click', () => {
+    if (playing) pausePlayback();
+    else schedulePlayback(currentBar, !paused);
   });
-  if (push) history.replaceState(null, '', '#' + part.id);
-}
-window.addEventListener('hashchange', () => show(location.hash.slice(1), false));
-show(location.hash.slice(1), false);
+  stopBtn.addEventListener('click', stopPlayback);
+  $('printBtn').addEventListener('click', () => window.print());
+
+  tempoInput.addEventListener('input', () => {
+    tempoValue.textContent = `${tempoInput.value} BPM`;
+    drawInteractiveSheet();
+    if (playing) schedulePlayback(currentBar, false);
+  });
+
+  sectionSelect.addEventListener('change', () => {
+    const sec = getSelectedSection();
+    seekToBar(sec.startBar - 1);
+  });
+
+  mixModeSelect.addEventListener('change', () => {
+    if (playing) schedulePlayback(currentBar, false);
+  });
+
+  document.querySelectorAll('.view-seg button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      viewMode = btn.dataset.view;
+      updateViewVisibility();
+    });
+  });
+
+  document.querySelectorAll('.jump-btn').forEach(btn => {
+    btn.addEventListener('click', () => seekToBar(+btn.dataset.bar - 1));
+  });
+
+  spreadBtn.addEventListener('click', () => {
+    spread2 = !spread2;
+    renderPrintedPages();
+  });
+
+  compactBtn.addEventListener('click', () => {
+    compactFit = !compactFit;
+    renderPrintedPages();
+  });
+
+  fingerBtn.addEventListener('click', () => fingerDialog.showModal());
+  $('closeFinger').addEventListener('click', () => fingerDialog.close());
+  fingerDialog.addEventListener('click', e => {
+    if (e.target === fingerDialog) fingerDialog.close();
+  });
+
+  window.addEventListener('hashchange', () => selectPart(location.hash.slice(1), false));
+  window.addEventListener('beforeunload', clearTimers);
+
+  // Initialize UI
+  buildPartSelectors();
+  buildMixer();
+  syncMixerUI();
+  updateViewVisibility();
+  selectPart(location.hash.slice(1) || 'score', false);
+})();
 </script>
 </body>
 </html>
