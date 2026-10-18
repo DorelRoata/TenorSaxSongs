@@ -125,7 +125,6 @@
   background: var(--active);
   border-color: #ff9c7e;
   color: #fff;
-  box-shadow: 0 2px 10px #ea4c2366;
 }
 .part-btn[aria-pressed="true"] .part-tag {
   background: #ffffff28;
@@ -145,7 +144,6 @@
   color: var(--ink);
   font: 700 .8rem Arial, sans-serif;
 }
-/* Combined Mixer + Rehearsal Bar */
 .studio-subbar {
   display: flex;
   flex-wrap: wrap;
@@ -181,12 +179,10 @@
   border: 1px solid #bfb396;
   font-size: .7rem;
   color: var(--ink);
-  transition: .1s;
 }
 .voice-chip.playing-now {
   border-color: var(--active);
-  background: #fff3d9;
-  box-shadow: 0 0 0 2px #ea4c2330;
+  background: #fff5e4;
 }
 .voice-chip.muted {
   opacity: .45;
@@ -233,7 +229,6 @@
   border-color: var(--ink);
   color: #f2d67f;
 }
-/* Live Fingering + Active Note Banner */
 .live-finger-dock {
   display: flex;
   align-items: center;
@@ -258,10 +253,9 @@
   min-width: 84px;
   padding: 6px 12px;
   border-radius: 10px;
-  background: var(--active);
-  color: #fff;
+  background: #263b32;
+  color: #f2d67f;
   text-align: center;
-  box-shadow: 0 3px 10px #ea4c2344;
 }
 .dock-pitch strong {
   display: block;
@@ -271,7 +265,7 @@
   font: 700 .6rem Arial, sans-serif;
   text-transform: uppercase;
   letter-spacing: .07em;
-  color: #ffe8de;
+  color: #cfe0d7;
 }
 .dock-keys {
   display: flex;
@@ -310,14 +304,6 @@
   background: var(--active);
   border-color: var(--active);
   color: #fff;
-}
-.dock-next-pill {
-  padding: 4px 10px;
-  border-radius: 99px;
-  background: #fff5d6;
-  border: 1px solid #d5a638;
-  font: 700 .74rem Arial, sans-serif;
-  color: #6e4e10;
 }
 .pages-toolbar {
   display: flex;
@@ -412,7 +398,7 @@
   .status-pill { width: 100%; margin: 0; text-align: center; }
 }
 @media print {
-  .ensemble-controls, .studio-subbar, .live-finger-dock, .pages-toolbar, .countin-banner {
+  .ensemble-controls, .studio-subbar, .live-finger-dock, .pages-toolbar {
     display: none !important;
   }
   .pages, .pages.spread-2 {
@@ -447,13 +433,6 @@
   <div class="transport-row">
     <button id="playBtn" type="button">▶ Play</button>
     <button id="stopBtn" type="button" class="secondary">■ Stop</button>
-
-    <div class="beat-dots" id="beatDots" aria-label="Beat pulse indicator">
-      <span class="beat-dot downbeat"></span>
-      <span class="beat-dot"></span>
-      <span class="beat-dot"></span>
-      <span class="beat-dot"></span>
-    </div>
 
     <label class="control-pill">
       Tempo
@@ -536,12 +515,11 @@
       <span id="dockModifier" style="color:var(--rust);margin-left:4px">Standard keys</span>
     </div>
     <div id="dockEnsembleSummary" style="display:none;font:700 .78rem Arial,sans-serif;color:#263b32">
-      Full 6-Part Score Active — Every instrument line highlights in real time as the red playhead sweeps across the bar!
+      Full 6-Part Score — Each note highlights on its staff at the exact instant it plays.
     </div>
   </div>
-  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-    <span class="dock-next-pill" id="dockNextNote">Next: E5</span>
-    <span style="font:600 .74rem Arial,sans-serif;color:#5a665e">Click any measure to start from that bar · Click any note to hear it</span>
+  <div style="font:600 .74rem Arial,sans-serif;color:#5a665e">
+    Click any measure to start from that bar · Click any note to hear it
   </div>
 </section>
 
@@ -571,8 +549,6 @@
   </article>
 </section>
 </main>
-
-<div class="countin-banner" id="countInBanner"></div>
 
 <dialog id="fingerDialog">
   <div class="finger-heading">
@@ -616,27 +592,29 @@
   const fingerGrid = $('fingerGrid');
   const spreadBtn = $('spreadBtn');
   const compactBtn = $('compactBtn');
-  const countInBanner = $('countInBanner');
-  const beatDots = $('beatDots').querySelectorAll('.beat-dot');
 
   let currentPart = S.parts[0];
-  let viewMode = 'interactive'; // Default directly to interactive highlighted notation!
+  let viewMode = 'interactive';
   let spread2 = true;
   let compactFit = false;
   let currentBar = 0;
   let playing = false;
   let paused = false;
   let audio = null;
-  let timers = [];
+  let masterFilter = null;
+  let endTimer = null;
   let rafId = null;
-  let playbackScheduleMeta = null;
-  let playheadLine = null;
-  let playheadCap = null;
 
-  let noteEls = []; // Single-part or lead note elements
-  let scoreVoiceNoteEls = new Map(); // voiceId -> array of note objects when in Full Score mode
+  let noteEls = [];
+  let scoreVoiceNoteEls = new Map();
   let barBoxEls = [];
-  let barGeometry = [];
+
+  // Hardware-clock timelines for zero-lag, exact note-on-play highlighting
+  let partTimeline = [];
+  let lastPartEventIdx = -1;
+  let voiceTimelines = new Map();
+  let lastVoiceEventIdx = new Map();
+  let lastSystemScrolled = -1;
 
   const partButtons = new Map();
   const fingerCards = new Map();
@@ -721,8 +699,7 @@
     return { keys: filled, modifier, octave: n >= 74 };
   }
 
-  function updateLiveFingerDock(pitch, nextPitch = null) {
-    $('dockNextNote').textContent = `Next: ${nextPitch && nextPitch !== 'R' ? formatPitch(nextPitch) : (nextPitch === 'R' ? 'Rest' : '—')}`;
+  function updateLiveFingerDock(pitch) {
     const showSax = currentPart.supportsSaxFingering;
     $('dockSaxControls').style.display = showSax ? 'flex' : 'none';
     $('dockEnsembleSummary').style.display = currentPart.id === 'score' ? 'block' : 'none';
@@ -775,12 +752,11 @@
     });
   }
 
-  function highlightFingering(pitch, nextPitch = null) {
+  function highlightFingering(pitch) {
     fingerCards.forEach((card, p) => card.classList.toggle('current', p === pitch));
-    updateLiveFingerDock(pitch, nextPitch);
+    updateLiveFingerDock(pitch);
   }
 
-  // Helper to draw a single bar of notes onto an SVG staff with beaming and spotlight pills
   function renderBarNotes({ bar, bi, start, usable, base, clef, keySig, targetArray, compact = false }) {
     let cursor = 0;
     const barMeta = bar.map(([pitch, dur], ni) => {
@@ -791,7 +767,6 @@
       return { pitch, dur, x, y, startUnit, ni, beamed: false, up: y >= base };
     });
 
-    // Beam eighth & sixteenth groups within each quarter-note beat (beatUnit = 4)
     const beatSize = S.beatUnit;
     let i = 0;
     while (i < barMeta.length) {
@@ -845,19 +820,8 @@
       g.style.cursor = 'pointer';
       g.addEventListener('click', e => {
         e.stopPropagation();
-        seekToBar(bi, pitch);
+        seekToBar(bi, pitch, idxInArray);
       });
-
-      // Spotlight halo behind note
-      const spotTop = Math.min(base - 24, y - 14);
-      const spotHeight = (compact ? (base + 38) : (base + 54)) - spotTop;
-      g.append(el('rect', {
-        x: x - 13,
-        y: spotTop,
-        width: 26,
-        height: Math.max(54, spotHeight),
-        class: 'note-spotlight'
-      }));
 
       if (pitch === 'R') {
         if (dur >= 16) {
@@ -868,7 +832,6 @@
           g.append(el('text', { x, y: base + 6, 'font-size': compact ? 20 : 24, 'text-anchor': 'middle', fill: '#19231f' }, dur <= 2 ? '𝄾' : '𝄽'));
         }
         if (!compact) {
-          g.append(el('rect', { x: x - 13, y: base + 35, width: 26, height: 15, class: 'note-label-bg' }));
           g.append(el('text', { x, y: base + 46, class: 'note-label' }, 'rest'));
         }
       } else {
@@ -923,9 +886,7 @@
         }
 
         const labelY = compact ? (base + 32) : (base + 46);
-        g.append(el('rect', { x: x - 13, y: labelY - 11, width: 26, height: 15, class: 'note-label-bg' }));
         g.append(el('text', { x, y: labelY, class: 'note-label' }, formatPitch(pitch)));
-        g.append(el('circle', { cx: x, cy: y, r: 8, class: 'pulse' }));
       }
 
       svg.append(g);
@@ -938,20 +899,14 @@
     noteEls = [];
     scoreVoiceNoteEls.clear();
     barBoxEls = [];
-    barGeometry = [];
 
     if (currentPart.id === 'score') {
       drawFullScoreInteractive();
     } else {
       drawSinglePartInteractive();
     }
-
-    playheadLine = el('line', { x1: -20, y1: 0, x2: -20, y2: 0, class: 'playhead-line', visibility: 'hidden' });
-    playheadCap = el('circle', { cx: -20, cy: 0, r: 5.5, class: 'playhead-cap', visibility: 'hidden' });
-    svg.append(playheadLine, playheadCap);
   }
 
-  // Full 6-Voice Synchronized Interactive Score for "Together"
   function drawFullScoreInteractive() {
     const totalBars = 28;
     const barsPerSys = 4;
@@ -962,7 +917,7 @@
 
     svg.setAttribute('viewBox', `0 0 1120 ${height}`);
     svg.append(el('text', { x: 55, y: 30, class: 'title-svg' }, `${S.title} — Full 6-Part Interactive Score (Concert E♭)`));
-    svg.append(el('text', { x: 55, y: 52, class: 'meta' }, 'All 6 voices highlight in real time · Click any measure to jump'));
+    svg.append(el('text', { x: 55, y: 52, class: 'meta' }, 'Each note highlights as it plays · Click any measure to jump'));
     svg.append(el('text', { x: 850, y: 52, class: 'meta' }, `♩ = ${tempoInput.value} · 4/4 · Moderato`));
 
     S.voices.forEach(v => scoreVoiceNoteEls.set(v.id, []));
@@ -979,7 +934,6 @@
       const firstStaffBase = sysTop + 34;
       const lastStaffBase = firstStaffBase + (S.voices.length - 1) * voiceGap;
 
-      // Full-system measure click & active highlight box
       const barBg = el('rect', {
         x: bx,
         y: firstStaffBase - 28,
@@ -992,7 +946,6 @@
       svg.append(barBg);
       barBoxEls.push(barBg);
 
-      // Measure number & Rehearsal Mark at top of system
       svg.append(el('text', { x: bx + 6, y: firstStaffBase - 32, class: 'measure-no' }, `Bar ${bi + 1}`));
       const mark = S.rehearsalMarks[bi + 1];
       if (mark && mark !== 'Intro') {
@@ -1004,14 +957,7 @@
       const lead = slot === 0 ? 74 : 14;
       const start = bx + lead;
       const usable = barW - lead - 10;
-      barGeometry.push({
-        start,
-        usable,
-        topY: firstStaffBase - 26,
-        bottomY: lastStaffBase + 32
-      });
 
-      // Draw each of the 6 voices in this measure
       S.voices.forEach((voice, vi) => {
         const base = firstStaffBase + vi * voiceGap;
         const keySig = voice.keySignature || [];
@@ -1054,7 +1000,6 @@
         });
       });
 
-      // System bracket on left
       if (slot === 0) {
         svg.append(el('line', {
           x1: left,
@@ -1077,7 +1022,6 @@
     }
   }
 
-  // Single-Part Interactive Sheet
   function drawSinglePartInteractive() {
     const bars = currentPart.bars;
     const clef = currentPart.clef === 'bass' ? 'bass' : 'treble';
@@ -1159,12 +1103,6 @@
       const lead = slot === 0 ? (60 + keySig.length * 10 + (sys === 0 ? 18 : 0)) : 16;
       const start = bx + lead;
       const usable = barW - lead - 12;
-      barGeometry.push({
-        start,
-        usable,
-        topY: base - 32,
-        bottomY: base + 52
-      });
 
       renderBarNotes({
         bar,
@@ -1350,8 +1288,7 @@
     drawInteractiveSheet();
     renderPrintedPages();
     const firstPitch = currentPart.bars[currentBar]?.find(n => n[0] !== 'R')?.[0] || null;
-    const secondPitch = currentPart.bars[currentBar]?.[1]?.[0] || null;
-    updateLiveFingerDock(firstPitch, secondPitch);
+    updateLiveFingerDock(firstPitch);
 
     if (!playing) {
       statusEl.textContent = `Ready · ${currentPart.name} (${currentPart.writtenKey})`;
@@ -1364,6 +1301,10 @@
   function ensureAudio() {
     if (!audio || audio.state === 'closed') {
       audio = new (window.AudioContext || window.webkitAudioContext)();
+      masterFilter = audio.createBiquadFilter();
+      masterFilter.type = 'lowpass';
+      masterFilter.frequency.value = 2150;
+      masterFilter.connect(audio.destination);
     }
     if (audio.state === 'suspended') audio.resume();
   }
@@ -1372,22 +1313,18 @@
     if (!audio || volume <= 0.0005) return;
     const osc = audio.createOscillator();
     const gain = audio.createGain();
-    const filter = audio.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = type === 'sawtooth' ? 1950 : 2400;
-
     osc.type = type;
     osc.frequency.value = freq;
     gain.gain.setValueAtTime(0.0001, start);
-    gain.gain.exponentialRampToValueAtTime(volume, start + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, start + Math.max(0.045, duration - 0.02));
-    osc.connect(filter).connect(gain).connect(audio.destination);
+    gain.gain.exponentialRampToValueAtTime(volume, start + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + Math.max(0.04, duration - 0.018));
+    osc.connect(gain).connect(masterFilter || audio.destination);
     osc.start(start);
     osc.stop(start + duration);
   }
 
   function playClick(t, accent) {
-    playTone(accent ? 1040 : 760, t, 0.04, accent ? 0.055 : 0.028, 'square');
+    playTone(accent ? 1040 : 760, t, 0.038, accent ? 0.05 : 0.025, 'square');
   }
 
   function previewSingleNote(pitch) {
@@ -1395,53 +1332,95 @@
     ensureAudio();
     const semitones = currentPart.semitonesToConcert ?? -2;
     const concertMidi = midi(pitch) + semitones;
-    playTone(hz(concertMidi), audio.currentTime + 0.02, 0.55, 0.085, 'triangle');
-    highlightFingering(pitch, null);
+    playTone(hz(concertMidi), audio.currentTime + 0.01, 0.5, 0.085, 'triangle');
+    highlightFingering(pitch);
   }
 
-  function setBeatDot(beatIdx) {
-    beatDots.forEach((d, idx) => d.classList.toggle('on', idx === beatIdx));
-  }
+  // Hardware-synced rAF loop: highlights ONLY the note currently playing
+  function syncVisuals() {
+    if (!playing || !audio) return;
+    const latency = (audio.outputLatency || audio.baseLatency || 0);
+    const now = audio.currentTime - latency;
 
-  // 60fps continuous sweeping playhead cursor synced to AudioContext clock
-  function updatePlayheadLoop() {
-    if (!playing || !audio || !playbackScheduleMeta) return;
-    const { musicStart, startBarIndex, endBarIndex, barDuration } = playbackScheduleMeta;
-    const elapsed = audio.currentTime - musicStart;
-    if (elapsed >= 0) {
-      const barOffset = Math.floor(elapsed / barDuration);
-      const bi = startBarIndex + barOffset;
-      if (bi >= startBarIndex && bi <= endBarIndex && barGeometry[bi]) {
-        const frac = (elapsed - barOffset * barDuration) / barDuration;
-        const geom = barGeometry[bi];
-        const x = geom.start + Math.max(0, Math.min(1, frac)) * geom.usable;
-        playheadLine.setAttribute('x1', x);
-        playheadLine.setAttribute('x2', x);
-        playheadLine.setAttribute('y1', geom.topY);
-        playheadLine.setAttribute('y2', geom.bottomY);
-        playheadLine.setAttribute('visibility', 'visible');
-        playheadCap.setAttribute('cx', x);
-        playheadCap.setAttribute('cy', geom.topY);
-        playheadCap.setAttribute('visibility', 'visible');
+    // 1. Update selected part timeline
+    let activePartIdx = -1;
+    for (let i = 0; i < partTimeline.length; i++) {
+      const ev = partTimeline[i];
+      if (now >= ev.start && now < ev.end) {
+        activePartIdx = i;
+        break;
       }
     }
-    rafId = requestAnimationFrame(updatePlayheadLoop);
+
+    if (activePartIdx !== -1 && activePartIdx !== lastPartEventIdx) {
+      if (lastPartEventIdx >= 0 && partTimeline[lastPartEventIdx]?.noteObj) {
+        partTimeline[lastPartEventIdx].noteObj.el.setAttribute('class', 'note');
+      }
+      const ev = partTimeline[activePartIdx];
+      if (ev.noteObj) {
+        ev.noteObj.el.setAttribute('class', 'note active');
+      }
+      highlightActiveMeasure(ev.barIndex);
+      highlightFingering(ev.pitch === 'R' ? null : ev.pitch);
+      const reh = S.rehearsalMarks[ev.barIndex + 1] ? `[${S.rehearsalMarks[ev.barIndex + 1]}] ` : '';
+      statusEl.textContent = `${reh}Bar ${ev.barIndex + 1}/28 · Beat ${ev.beatNum} · ${ev.pitch === 'R' ? 'Rest' : formatPitch(ev.pitch)}`;
+
+      const sys = Math.floor(ev.barIndex / 4);
+      if (sys !== lastSystemScrolled && viewMode !== 'printed') {
+        lastSystemScrolled = sys;
+        barBoxEls[ev.barIndex]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      lastPartEventIdx = activePartIdx;
+    }
+
+    // 2. Update all 6 voices (for mixer chips + Full Score mode)
+    S.voices.forEach(voice => {
+      const vList = voiceTimelines.get(voice.id) || [];
+      const prevIdx = lastVoiceEventIdx.get(voice.id) ?? -1;
+      let curIdx = -1;
+      for (let i = 0; i < vList.length; i++) {
+        const ev = vList[i];
+        if (now >= ev.start && now < ev.end) {
+          curIdx = i;
+          break;
+        }
+      }
+      if (curIdx !== -1 && curIdx !== prevIdx) {
+        if (prevIdx >= 0 && vList[prevIdx]?.noteObj) {
+          vList[prevIdx].noteObj.el.setAttribute('class', 'note');
+        }
+        const ev = vList[curIdx];
+        if (ev.noteObj && ev.gain > 0) {
+          ev.noteObj.el.setAttribute('class', 'note active');
+        }
+        const noteSpan = document.querySelector(`[data-voice-note="${voice.id}"]`);
+        if (noteSpan) noteSpan.textContent = ev.pitch === 'R' ? '·' : formatPitch(ev.pitch);
+        voiceChips.get(voice.id)?.classList.toggle('playing-now', ev.pitch !== 'R' && ev.gain > 0);
+        lastVoiceEventIdx.set(voice.id, curIdx);
+      }
+    });
+
+    rafId = requestAnimationFrame(syncVisuals);
   }
 
   function clearTimers() {
-    timers.forEach(clearTimeout);
-    timers = [];
+    if (endTimer) {
+      clearTimeout(endTimer);
+      endTimer = null;
+    }
     if (rafId) {
       cancelAnimationFrame(rafId);
       rafId = null;
     }
-    countInBanner.classList.remove('show');
-    setBeatDot(-1);
-    if (playheadLine) playheadLine.setAttribute('visibility', 'hidden');
-    if (playheadCap) playheadCap.setAttribute('visibility', 'hidden');
+    partTimeline = [];
+    lastPartEventIdx = -1;
+    voiceTimelines.clear();
+    lastVoiceEventIdx.clear();
+    lastSystemScrolled = -1;
     if (audio) {
       audio.close().catch(() => {});
       audio = null;
+      masterFilter = null;
     }
   }
 
@@ -1522,19 +1501,21 @@
     statusEl.textContent = `Ready · ${currentPart.name} (${currentPart.writtenKey})`;
   }
 
-  function seekToBar(barIdx, previewPitch = null) {
+  function seekToBar(barIdx, previewPitch = null, clickedIdx = null) {
     currentBar = Math.max(0, Math.min(27, barIdx));
     highlightActiveMeasure(currentBar);
     if (playing) {
       schedulePlayback(currentBar, false);
     } else {
       if (paused) playBtn.textContent = `▶ Resume (Bar ${currentBar + 1})`;
+      if (clickedIdx !== null && currentPart.id !== 'score') {
+        noteEls.forEach((n, i) => n.el.setAttribute('class', i === clickedIdx ? 'note active' : 'note'));
+      }
       if (previewPitch && previewPitch !== 'R') {
         previewSingleNote(previewPitch);
       } else {
         const firstPitch = currentPart.bars[currentBar]?.find(n => n[0] !== 'R')?.[0] || null;
-        const secondPitch = currentPart.bars[currentBar]?.[1]?.[0] || null;
-        highlightFingering(firstPitch, secondPitch);
+        highlightFingering(firstPitch);
       }
       statusEl.textContent = `Ready at Bar ${currentBar + 1} · ${currentPart.name}`;
     }
@@ -1547,6 +1528,13 @@
     paused = false;
     playBtn.textContent = '❚❚ Pause';
 
+    noteEls.forEach(n => n.el.setAttribute('class', 'note'));
+    scoreVoiceNoteEls.forEach(arr => arr.forEach(n => n.el.setAttribute('class', 'note')));
+    S.voices.forEach(v => {
+      voiceTimelines.set(v.id, []);
+      lastVoiceEventIdx.set(v.id, -1);
+    });
+
     const sec = getSelectedSection();
     const endBarIndex = Math.max(startBarIndex, sec.endBar - 1);
     const bpm = +tempoInput.value;
@@ -1554,145 +1542,90 @@
     const unit = beat / S.beatUnit;
     const countInBeats = withCountIn ? S.beatsPerBar : 0;
     const countInSec = countInBeats * beat;
-    const start = audio.currentTime + 0.08;
+    const start = audio.currentTime + 0.04;
     const musicStart = start + countInSec;
     const useClick = clickToggle.checked;
 
-    playbackScheduleMeta = {
-      musicStart,
-      startBarIndex,
-      endBarIndex,
-      barDuration: S.unitsPerBar * unit
-    };
-    rafId = requestAnimationFrame(updatePlayheadLoop);
-
-    // Pre-highlight the starting bar during count-in so the player's eye locks on immediately
-    highlightActiveMeasure(startBarIndex);
-    if (currentPart.id !== 'score') {
-      const firstIdx = noteEls.findIndex(n => n.barIndex === startBarIndex);
-      if (firstIdx !== -1) {
-        noteEls.forEach((n, i) => n.el.setAttribute('class', i === firstIdx ? 'note upcoming' : 'note'));
-        highlightFingering(noteEls[firstIdx].pitch, noteEls[firstIdx + 1]?.pitch || null);
-      }
-    }
-
     if (withCountIn) {
       for (let i = 0; i < countInBeats; i++) {
-        const beatTime = start + i * beat;
-        if (useClick) playClick(beatTime, i === 0);
-        const ms = (beatTime - audio.currentTime) * 1000;
-        timers.push(setTimeout(() => {
-          const beatNum = i + 1;
-          setBeatDot(i);
-          countInBanner.textContent = `Count-In: ${beatNum} of 4 — Get Ready (Bar ${startBarIndex + 1})`;
-          countInBanner.classList.add('show');
-          statusEl.textContent = `Count-In · Beat ${beatNum}/4`;
-        }, Math.max(0, ms)));
+        if (useClick) playClick(start + i * beat, i === 0);
       }
-      timers.push(setTimeout(() => countInBanner.classList.remove('show'), countInSec * 1000));
+      statusEl.textContent = `Count-In · Starting Bar ${startBarIndex + 1}`;
     }
 
     let elapsedUnits = 0;
     for (let bi = startBarIndex; bi <= endBarIndex; bi++) {
       const barStart = musicStart + elapsedUnits * unit;
 
-      for (let b = 0; b < S.beatsPerBar; b++) {
-        const beatTime = barStart + b * beat;
-        if (useClick) playClick(beatTime, b === 0);
-        timers.push(setTimeout(() => setBeatDot(b), Math.max(0, (beatTime - audio.currentTime) * 1000)));
+      if (useClick) {
+        for (let b = 0; b < S.beatsPerBar; b++) {
+          playClick(barStart + b * beat, b === 0);
+        }
       }
 
-      // Schedule all 6 ensemble voices (audio + Full Score multi-staff note highlighting!)
+      // Schedule all 6 ensemble voices (audio + timeline entries)
       S.voices.forEach(voice => {
         const gain = effectiveVoiceGain(voice, bi);
         let vCursor = 0;
         const voiceArr = scoreVoiceNoteEls.get(voice.id) || [];
+        const vEvents = voiceTimelines.get(voice.id);
 
         voice.bars[bi].forEach(([vPitch, vDur]) => {
-          const noteStartUnit = vCursor; // Capture immutable start unit in closure!
+          const noteStartUnit = vCursor;
           const noteTime = barStart + noteStartUnit * unit;
-          const ms = (noteTime - audio.currentTime) * 1000;
+          const durSec = vDur * unit;
           if (vPitch !== 'R' && gain > 0) {
             const concertM = midi(vPitch) + voice.semitonesToConcert;
-            playTone(hz(concertM), noteTime, vDur * unit * 0.91, gain, voice.wave);
+            playTone(hz(concertM), noteTime, durSec * 0.91, gain, voice.wave);
           }
-          timers.push(setTimeout(() => {
-            const noteSpan = document.querySelector(`[data-voice-note="${voice.id}"]`);
-            if (noteSpan) noteSpan.textContent = vPitch === 'R' ? '·' : formatPitch(vPitch);
-            voiceChips.get(voice.id)?.classList.toggle('playing-now', vPitch !== 'R' && gain > 0);
-
-            // Highlight this voice's note on the Full Score interactive SVG!
-            if (currentPart.id === 'score' && voiceArr.length) {
-              const target = voiceArr.find(n => n.barIndex === bi && n.startUnit === noteStartUnit);
-              if (target) {
-                const tIdx = target.idx;
-                voiceArr.forEach((n, idx) => {
-                  if (idx < tIdx) n.el.setAttribute('class', 'note past');
-                  else if (idx === tIdx) n.el.setAttribute('class', gain > 0 ? 'note active' : 'note past');
-                  else if (idx === tIdx + 1) n.el.setAttribute('class', 'note upcoming');
-                  else n.el.setAttribute('class', 'note');
-                });
-              }
-            }
-          }, Math.max(0, ms)));
+          const target = currentPart.id === 'score'
+            ? voiceArr.find(n => n.barIndex === bi && n.startUnit === noteStartUnit)
+            : null;
+          vEvents.push({
+            start: noteTime,
+            end: noteTime + durSec,
+            barIndex: bi,
+            pitch: vPitch,
+            gain,
+            noteObj: target
+          });
           vCursor += vDur;
         });
       });
 
-      // Schedule visual note tracking for the selected part (or lead cue in Score mode)
+      // Build timeline for selected part
       let pCursor = 0;
       const barNotes = noteEls.filter(n => n.barIndex === bi);
       currentPart.bars[bi].forEach(([pitch, dur], ni) => {
-        const noteStartUnit = pCursor; // Capture immutable start unit for this note!
+        const noteStartUnit = pCursor;
         const noteTime = barStart + noteStartUnit * unit;
-        const ms = (noteTime - audio.currentTime) * 1000;
+        const durSec = dur * unit;
         const beatNum = Math.floor(noteStartUnit / S.beatUnit) + 1;
-        const targetObj = barNotes[ni];
-        const globalIdx = targetObj ? targetObj.idx : -1;
-        const nextObj = globalIdx >= 0 ? noteEls[globalIdx + 1] : null;
-
-        timers.push(setTimeout(() => {
-          highlightActiveMeasure(bi);
-          if (currentPart.id !== 'score' && globalIdx >= 0) {
-            noteEls.forEach((n, idx) => {
-              if (idx < globalIdx) n.el.setAttribute('class', 'note past');
-              else if (idx === globalIdx) n.el.setAttribute('class', 'note active');
-              else if (idx === globalIdx + 1) n.el.setAttribute('class', 'note upcoming');
-              else n.el.setAttribute('class', 'note');
-            });
-            const activeNode = targetObj.el;
-            const pulse = activeNode.querySelector('.pulse');
-            if (pulse) {
-              pulse.classList.remove('on');
-              void pulse.getBBox();
-              pulse.classList.add('on');
-            }
-            if (viewMode !== 'printed') {
-              activeNode.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-          } else if (currentPart.id === 'score' && viewMode !== 'printed') {
-            barBoxEls[bi]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          }
-
-          highlightFingering(pitch === 'R' ? null : pitch, nextObj?.pitch || null);
-          const reh = S.rehearsalMarks[bi + 1] ? `[${S.rehearsalMarks[bi + 1]}] ` : '';
-          statusEl.textContent = `${reh}Bar ${bi + 1}/28 · Beat ${beatNum} · ${pitch === 'R' ? 'Rest' : formatPitch(pitch)}`;
-        }, Math.max(0, ms)));
+        partTimeline.push({
+          start: noteTime,
+          end: noteTime + durSec,
+          barIndex: bi,
+          beatNum,
+          pitch,
+          noteObj: barNotes[ni] || null
+        });
         pCursor += dur;
       });
 
       elapsedUnits += S.unitsPerBar;
     }
 
-    const totalMs = (countInSec + elapsedUnits * unit) * 1000 + 120;
-    timers.push(setTimeout(() => {
+    rafId = requestAnimationFrame(syncVisuals);
+
+    const totalMs = (countInSec + elapsedUnits * unit) * 1000 + 80;
+    endTimer = setTimeout(() => {
       if (loopToggle.checked) {
         const secNow = getSelectedSection();
         schedulePlayback(secNow.startBar - 1, false);
       } else {
         stopPlayback();
       }
-    }, totalMs));
+    }, totalMs);
   }
 
   playBtn.addEventListener('click', () => {

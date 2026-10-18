@@ -10,7 +10,6 @@
   const svg = document.querySelector('#sheet');
   const noteEls = [];
   const barBoxEls = [];
-  const barGeometry = [];
   const $ = id => document.getElementById(id);
   const pitchIndex = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
   const semis = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -35,13 +34,13 @@
   let playing = false;
   let paused = false;
   let audio = null;
-  let timers = [];
+  let endTimer = null;
   let rafId = null;
-  let playbackScheduleMeta = null;
-  let playheadLine = null;
-  let playheadCap = null;
+  let timeline = [];
+  let lastActiveEventIdx = -1;
+  let lastSystemScrolled = -1;
 
-  // Inject Phrase / Section Selector and Visual Beat Dots into .controls
+  // Inject Phrase / Section Selector into .controls
   const controls = document.querySelector('.controls');
   const phraseLabel = document.createElement('label');
   phraseLabel.innerHTML = `Section <select id="phraseSelect" class="phrase-select" aria-label="Select bars to practice"></select>`;
@@ -52,21 +51,6 @@
     controls.append(phraseLabel);
   }
   const phraseSelect = $('phraseSelect');
-
-  const beatDotsWrap = document.createElement('div');
-  beatDotsWrap.className = 'beat-dots';
-  beatDotsWrap.setAttribute('aria-label', 'Beat indicator');
-  for (let b = 0; b < s.beatsPerBar; b++) {
-    const dot = document.createElement('span');
-    dot.className = `beat-dot ${b === 0 ? 'downbeat' : ''}`;
-    beatDotsWrap.append(dot);
-  }
-  controls.insertBefore(beatDotsWrap, $('status'));
-
-  // Floating count-in banner
-  const countInBanner = document.createElement('div');
-  countInBanner.className = 'countin-banner';
-  document.body.append(countInBanner);
 
   function buildPhraseOptions() {
     const total = s.bars.length;
@@ -118,8 +102,7 @@
       </div>
     </div>
     <div class="hud-right">
-      <span class="hud-next" id="hudNext">Next: —</span>
-      <span>Orange = Now Playing · Gold = Next Note</span>
+      <span>Click any measure to start from that bar · Click any note to hear it</span>
     </div>
   `;
   sheetWrap.parentNode.insertBefore(liveHud, sheetWrap);
@@ -191,7 +174,6 @@
     svg.replaceChildren();
     noteEls.length = 0;
     barBoxEls.length = 0;
-    barGeometry.length = 0;
 
     svg.append(el('text', { x: 50, y: 31, class: 'title-svg' }, s.title));
     svg.append(el('text', { x: 50, y: 54, class: 'meta' }, `${s.direction} · Click any measure to play from that bar`));
@@ -209,7 +191,6 @@
       const base = top + 52;
       const bx = left + slot * barW;
 
-      // Clickable Measure Box (placed before staff lines so active measure background sits cleanly behind notes)
       const barRect = el('rect', {
         x: bx,
         y: base - 34,
@@ -258,7 +239,6 @@
       const lead = slot === 0 ? (78 + key.length * 10) : 18;
       const start = bx + lead;
       const usable = barW - lead - 10;
-      barGeometry.push({ start, usable, base });
 
       let cursor = 0;
       const barMeta = bar.map(([pitch, dur], ni) => {
@@ -324,15 +304,6 @@
           seekToBar(bi, pitch, noteIdx);
         });
 
-        // Spotlight pill behind active/upcoming note
-        g.append(el('rect', {
-          x: x - 15,
-          y: Math.min(base - 28, y - 16),
-          width: 30,
-          height: Math.max(82, base + 56 - Math.min(base - 28, y - 16)),
-          class: 'note-spotlight'
-        }));
-
         if (pitch === 'R') {
           if (dur >= s.unitsPerBar || dur >= 6) {
             g.append(el('rect', { x: x - 7, y: base - 10, width: 14, height: 6, fill: '#19231f' }));
@@ -344,8 +315,7 @@
             g.append(el('text', { x, y: base + 7, 'font-size': 26, 'text-anchor': 'middle', fill: '#19231f' }, '𝄽'));
             if (dur === 3) g.append(el('circle', { cx: x + 10, cy: base - 2, r: 1.8, fill: '#19231f' }));
           }
-          g.append(el('rect', { x: x - 14, y: base + 36, width: 28, height: 16, class: 'note-label-bg' }));
-          g.append(el('text', { x, y: base + 48, class: 'note-label' }, dur >= s.unitsPerBar ? 'rest' : 'rest'));
+          g.append(el('text', { x, y: base + 48, class: 'note-label' }, 'rest'));
         } else {
           const q = parts(pitch);
           if (q.sharp && !key.includes(`${q.letter}#`)) {
@@ -391,13 +361,11 @@
             g.append(el('circle', { cx: x + 12, cy: y - 1, r: 2, fill: '#19231f' }));
           }
 
-          g.append(el('rect', { x: x - 14, y: base + 36, width: 28, height: 16, class: 'note-label-bg' }));
           g.append(el('text', { x, y: base + 48, class: 'note-label' }, formatPitch(pitch)));
-          g.append(el('circle', { cx: x, cy: y, r: 9, class: 'pulse' }));
         }
 
         svg.append(g);
-        noteEls.push({ el: g, barIndex: bi, pitch, dur, startUnit, x, y });
+        noteEls.push({ el: g, barIndex: bi, pitch, dur, startUnit });
       });
 
       if (bi === s.bars.length - 1) {
@@ -411,11 +379,6 @@
         }));
       }
     });
-
-    // Continuous sweeping playhead cursor elements
-    playheadLine = el('line', { x1: -20, y1: 0, x2: -20, y2: 0, class: 'playhead-line', visibility: 'hidden' });
-    playheadCap = el('circle', { cx: -20, cy: 0, r: 5, class: 'playhead-cap', visibility: 'hidden' });
-    svg.append(playheadLine, playheadCap);
 
     svg.append(el('text', { x: 50, y: height - 20, class: 'meta' }, `${s.credit} · B♭ tenor sax part`));
   }
@@ -457,8 +420,7 @@
     return `${NOTE_NAMES_FLAT[pc]}${oct}`;
   }
 
-  function updateLiveHud(pitch, nextPitch = null) {
-    $('hudNext').textContent = `Next: ${nextPitch && nextPitch !== 'R' ? formatPitch(nextPitch) : (nextPitch === 'R' ? 'Rest' : '—')}`;
+  function updateLiveHud(pitch) {
     if (!pitch || pitch === 'R') {
       $('hudNote').textContent = 'Rest';
       $('hudConcert').textContent = 'Breathe / Count';
@@ -474,12 +436,12 @@
     $('hudMod').textContent = f.modifier || 'Standard keys';
   }
 
-  function activeFingering(p, nextPitch = null) {
+  function activeFingering(p) {
     fingerCards.forEach((card, pitch) => card.classList.toggle('current', pitch === p));
     if (p && fingerDialog.open) {
       fingerCards.get(p)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
-    updateLiveHud(p, nextPitch);
+    updateLiveHud(p);
   }
 
   function drawFingerings() {
@@ -510,8 +472,7 @@
   drawFingerings();
 
   const initialNote = s.bars[0]?.find(n => n[0] !== 'R')?.[0] || null;
-  const secondNote = s.bars.flat()[1]?.[0] || null;
-  updateLiveHud(initialNote, secondNote);
+  updateLiveHud(initialNote);
 
   $('finger').addEventListener('click', () => fingerDialog.showModal());
   $('closeFinger').addEventListener('click', () => fingerDialog.close());
@@ -540,8 +501,8 @@
     o.type = type;
     o.frequency.value = freq;
     g.gain.setValueAtTime(0.0001, start);
-    g.gain.exponentialRampToValueAtTime(volume, start + 0.018);
-    g.gain.exponentialRampToValueAtTime(0.0001, start + Math.max(0.04, duration - 0.025));
+    g.gain.exponentialRampToValueAtTime(volume, start + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001, start + Math.max(0.04, duration - 0.02));
     o.connect(g).connect(audio.destination);
     o.start(start);
     o.stop(start + duration);
@@ -550,12 +511,12 @@
   function previewPitch(p) {
     if (!p || p === 'R') return;
     ensureAudio();
-    tone(hz(midi(p) - 14), audio.currentTime + 0.02, 0.5, 0.09, s.style === 'funk' ? 'sawtooth' : 'triangle');
-    activeFingering(p, null);
+    tone(hz(midi(p) - 14), audio.currentTime + 0.01, 0.5, 0.09, s.style === 'funk' ? 'sawtooth' : 'triangle');
+    activeFingering(p);
   }
 
   function click(t, accent) {
-    tone(accent ? 1050 : 760, t, 0.045, accent ? 0.07 : 0.035, 'square');
+    tone(accent ? 1050 : 760, t, 0.04, accent ? 0.065 : 0.03, 'square');
   }
 
   function backing(chord, start, beat, eighth) {
@@ -595,47 +556,54 @@
     });
   }
 
-  function setBeatDot(beatIdx) {
-    const dots = beatDotsWrap.querySelectorAll('.beat-dot');
-    dots.forEach((d, idx) => d.classList.toggle('on', idx === beatIdx));
-  }
+  // Hardware-synced rAF loop: highlights ONLY the note currently playing
+  function syncVisuals() {
+    if (!playing || !audio) return;
+    const latency = (audio.outputLatency || audio.baseLatency || 0);
+    const now = audio.currentTime - latency;
 
-  // 60fps continuous sweeping playhead cursor synced to AudioContext clock
-  function updatePlayheadLoop() {
-    if (!playing || !audio || !playbackScheduleMeta) return;
-    const { musicStart, startBarIdx, lastBarIdx, barDuration } = playbackScheduleMeta;
-    const elapsed = audio.currentTime - musicStart;
-    if (elapsed >= 0) {
-      const barOffset = Math.floor(elapsed / barDuration);
-      const bi = startBarIdx + barOffset;
-      if (bi >= startBarIdx && bi <= lastBarIdx && barGeometry[bi]) {
-        const frac = (elapsed - barOffset * barDuration) / barDuration;
-        const geom = barGeometry[bi];
-        const x = geom.start + Math.max(0, Math.min(1, frac)) * geom.usable;
-        playheadLine.setAttribute('x1', x);
-        playheadLine.setAttribute('x2', x);
-        playheadLine.setAttribute('y1', geom.base - 32);
-        playheadLine.setAttribute('y2', geom.base + 50);
-        playheadLine.setAttribute('visibility', 'visible');
-        playheadCap.setAttribute('cx', x);
-        playheadCap.setAttribute('cy', geom.base - 32);
-        playheadCap.setAttribute('visibility', 'visible');
+    let activeIdx = -1;
+    for (let i = 0; i < timeline.length; i++) {
+      const ev = timeline[i];
+      if (now >= ev.start && now < ev.end) {
+        activeIdx = i;
+        break;
       }
     }
-    rafId = requestAnimationFrame(updatePlayheadLoop);
+
+    if (activeIdx !== -1 && activeIdx !== lastActiveEventIdx) {
+      if (lastActiveEventIdx >= 0 && timeline[lastActiveEventIdx]) {
+        timeline[lastActiveEventIdx].noteObj.el.setAttribute('class', 'note');
+      }
+      const ev = timeline[activeIdx];
+      ev.noteObj.el.setAttribute('class', 'note active');
+      highlightBarBox(ev.barIndex);
+      activeFingering(ev.pitch === 'R' ? null : ev.pitch);
+      status.textContent = `Bar ${ev.barIndex + 1}/${s.bars.length} · ${ev.pitch === 'R' ? 'Rest' : formatPitch(ev.pitch)}`;
+
+      const sys = Math.floor(ev.barIndex / 4);
+      if (sys !== lastSystemScrolled) {
+        lastSystemScrolled = sys;
+        barBoxEls[ev.barIndex]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      lastActiveEventIdx = activeIdx;
+    }
+
+    rafId = requestAnimationFrame(syncVisuals);
   }
 
   function clearAudioTimers() {
-    timers.forEach(clearTimeout);
-    timers = [];
+    if (endTimer) {
+      clearTimeout(endTimer);
+      endTimer = null;
+    }
     if (rafId) {
       cancelAnimationFrame(rafId);
       rafId = null;
     }
-    countInBanner.classList.remove('show');
-    setBeatDot(-1);
-    if (playheadLine) playheadLine.setAttribute('visibility', 'hidden');
-    if (playheadCap) playheadCap.setAttribute('visibility', 'hidden');
+    timeline = [];
+    lastActiveEventIdx = -1;
+    lastSystemScrolled = -1;
     if (audio) {
       audio.close().catch(() => {});
       audio = null;
@@ -660,7 +628,7 @@
     noteEls.forEach(n => n.el.setAttribute('class', 'note'));
     highlightBarBox(currentBar);
     const firstP = s.bars[currentBar]?.find(n => n[0] !== 'R')?.[0] || null;
-    activeFingering(firstP, null);
+    activeFingering(firstP);
     status.textContent = `Ready · Bar ${currentBar + 1} · Written ${s.writtenKey}`;
   }
 
@@ -671,17 +639,13 @@
       schedule(currentBar, false);
     } else {
       if (paused) play.textContent = `▶ Resume (Bar ${currentBar + 1})`;
-      if (clickedNoteIdx !== null) {
-        noteEls.forEach((n, i) =>
-          n.el.setAttribute('class', i === clickedNoteIdx ? 'note active' : (i === clickedNoteIdx + 1 ? 'note upcoming' : 'note'))
-        );
-      }
+      noteEls.forEach((n, i) => n.el.setAttribute('class', i === clickedNoteIdx ? 'note active' : 'note'));
       if (clickedPitch && clickedPitch !== 'R') {
         previewPitch(clickedPitch);
-        status.textContent = `Bar ${currentBar + 1} · Audition ${formatPitch(clickedPitch)}`;
+        status.textContent = `Bar ${currentBar + 1} · ${formatPitch(clickedPitch)}`;
       } else {
         const firstP = s.bars[currentBar]?.find(n => n[0] !== 'R')?.[0] || null;
-        activeFingering(firstP, null);
+        activeFingering(firstP);
         status.textContent = `Ready at Bar ${currentBar + 1} · Written ${s.writtenKey}`;
       }
     }
@@ -693,6 +657,7 @@
     playing = true;
     paused = false;
     play.textContent = '❚❚ Pause';
+    noteEls.forEach(n => n.el.setAttribute('class', 'note'));
 
     const { endBar } = getPhraseRange();
     const lastBarIdx = Math.max(startBarIdx, endBar);
@@ -701,40 +666,15 @@
     const unit = beat / s.beatUnit;
     const countInBars = withCountIn ? 1 : 0;
     const countIn = beat * s.beatsPerBar * countInBars;
-    const start = audio.currentTime + 0.08;
+    const start = audio.currentTime + 0.05;
     const musicStart = start + countIn;
     const melody = $('melodyCue').checked;
 
-    playbackScheduleMeta = {
-      musicStart,
-      startBarIdx,
-      lastBarIdx,
-      barDuration: s.unitsPerBar * unit
-    };
-    rafId = requestAnimationFrame(updatePlayheadLoop);
-
-    // Pre-highlight the very first note of the starting bar during count-in so the player can lock onto it!
-    const firstNoteIdx = noteEls.findIndex(n => n.barIndex === startBarIdx);
-    if (firstNoteIdx !== -1) {
-      highlightBarBox(startBarIdx);
-      noteEls.forEach((n, i) => n.el.setAttribute('class', i === firstNoteIdx ? 'note upcoming' : 'note'));
-      activeFingering(noteEls[firstNoteIdx].pitch, noteEls[firstNoteIdx + 1]?.pitch || null);
-    }
-
     if (withCountIn) {
       for (let i = 0; i < s.beatsPerBar * countInBars; i++) {
-        const beatTime = start + i * beat;
-        click(beatTime, i % s.beatsPerBar === 0);
-        const ms = (beatTime - audio.currentTime) * 1000;
-        timers.push(setTimeout(() => {
-          const beatNum = (i % s.beatsPerBar) + 1;
-          setBeatDot(beatNum - 1);
-          countInBanner.textContent = `Count-In: ${beatNum} of ${s.beatsPerBar} — Get Ready (Bar ${startBarIdx + 1})`;
-          countInBanner.classList.add('show');
-          status.textContent = `Count-In · Beat ${beatNum}/${s.beatsPerBar}`;
-        }, Math.max(0, ms)));
+        click(start + i * beat, i % s.beatsPerBar === 0);
       }
-      timers.push(setTimeout(() => countInBanner.classList.remove('show'), countIn * 1000));
+      status.textContent = `Count-in · Starting Bar ${startBarIdx + 1}`;
     }
 
     let units = 0;
@@ -744,57 +684,43 @@
       backing(s.chords[bi % s.chords.length], barStart, beat, unit);
 
       for (let b = 0; b < s.beatsPerBar; b++) {
-        const beatTime = barStart + b * beat;
-        click(beatTime, b === 0);
-        timers.push(setTimeout(() => setBeatDot(b), Math.max(0, (beatTime - audio.currentTime) * 1000)));
+        click(barStart + b * beat, b === 0);
       }
 
       const barNotes = noteEls.filter(x => x.barIndex === bi);
       bar.forEach(([pitch, dur], ni) => {
         const when = musicStart + units * unit;
-        const ms = (when - audio.currentTime) * 1000;
+        const durationSec = dur * unit;
         const targetObj = barNotes[ni];
-        const globalNoteIdx = noteEls.indexOf(targetObj);
-        const nextNoteObj = noteEls[globalNoteIdx + 1];
 
         if (melody && pitch !== 'R') {
-          tone(hz(midi(pitch) - 14), when, dur * unit * 0.92, 0.085, s.style === 'funk' ? 'sawtooth' : 'triangle');
+          tone(hz(midi(pitch) - 14), when, durationSec * 0.92, 0.085, s.style === 'funk' ? 'sawtooth' : 'triangle');
         }
 
-        timers.push(setTimeout(() => {
-          highlightBarBox(bi);
-          noteEls.forEach((n, i) => {
-            if (i < globalNoteIdx) n.el.setAttribute('class', 'note past');
-            else if (i === globalNoteIdx) n.el.setAttribute('class', 'note active');
-            else if (i === globalNoteIdx + 1) n.el.setAttribute('class', 'note upcoming');
-            else n.el.setAttribute('class', 'note');
+        if (targetObj) {
+          timeline.push({
+            start: when,
+            end: when + durationSec,
+            barIndex: bi,
+            pitch,
+            noteObj: targetObj
           });
-          const activeNode = targetObj?.el;
-          if (activeNode) {
-            const pulse = activeNode.querySelector('.pulse');
-            if (pulse) {
-              pulse.classList.remove('on');
-              void pulse.getBBox();
-              pulse.classList.add('on');
-            }
-            activeNode.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          }
-          activeFingering(pitch === 'R' ? null : pitch, nextNoteObj?.pitch || null);
-          status.textContent = `Bar ${bi + 1}/${s.bars.length} · ${pitch === 'R' ? 'Rest' : formatPitch(pitch)}`;
-        }, Math.max(0, ms)));
+        }
 
         units += dur;
       });
     }
 
-    timers.push(setTimeout(() => {
+    rafId = requestAnimationFrame(syncVisuals);
+
+    endTimer = setTimeout(() => {
       if ($('loop').checked) {
         const { startBar } = getPhraseRange();
         schedule(startBar, false);
       } else {
         stop();
       }
-    }, (countIn + units * unit) * 1000 + 140));
+    }, (countIn + units * unit) * 1000 + 100);
   }
 
   play.addEventListener('click', () => {
