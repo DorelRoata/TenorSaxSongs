@@ -324,8 +324,8 @@
         voiceId: null,
         saxType: null,
         supportsSaxFingering: false,
-        pdf: 'sheets/score.pdf',
-        pages: ['sheets/score-1.jpg', 'sheets/score-2.jpg'],
+        pdf: 'sheets/score.pdf?v=quintet3',
+        pages: ['sheets/quintet-score-1.png', 'sheets/quintet-score-2.png'],
         bars: SOPRANO_SAX_BB
       },
       {
@@ -343,8 +343,8 @@
         semitonesToConcert: -2,
         saxType: 'B♭ Soprano Saxophone',
         supportsSaxFingering: true,
-        pdf: 'sheets/trumpet-1.pdf',
-        pages: ['sheets/trumpet-1.jpg', 'sheets/euphonium-1.jpg'],
+        pdf: 'sheets/soprano-sax.pdf?v=quintet3',
+        pages: ['sheets/soprano-sax.png'],
         bars: SOPRANO_SAX_BB
       },
       {
@@ -362,8 +362,8 @@
         semitonesToConcert: -2,
         saxType: null,
         supportsSaxFingering: false,
-        pdf: 'sheets/trumpet-2.pdf',
-        pages: ['sheets/trumpet-2.jpg'],
+        pdf: 'sheets/trumpet.pdf?v=quintet3',
+        pages: ['sheets/trumpet.png'],
         bars: TRUMPET_BB
       },
       {
@@ -381,8 +381,8 @@
         semitonesToConcert: -2,
         saxType: null,
         supportsSaxFingering: false,
-        pdf: 'sheets/euphonium-1.pdf',
-        pages: ['sheets/euphonium-1.jpg'],
+        pdf: 'sheets/clarinet-1.pdf?v=quintet3',
+        pages: ['sheets/clarinet-1.png'],
         bars: CLARINET_1_BB
       },
       {
@@ -400,8 +400,8 @@
         semitonesToConcert: -2,
         saxType: null,
         supportsSaxFingering: false,
-        pdf: 'sheets/euphonium-2.pdf',
-        pages: ['sheets/euphonium-2.jpg'],
+        pdf: 'sheets/clarinet-2.pdf?v=quintet3',
+        pages: ['sheets/clarinet-2.png'],
         bars: CLARINET_2_BB
       },
       {
@@ -419,8 +419,8 @@
         semitonesToConcert: -14,
         saxType: 'B♭ Tenor Saxophone',
         supportsSaxFingering: true,
-        pdf: 'sheets/euphonium-2.pdf',
-        pages: ['sheets/euphonium-2.jpg'],
+        pdf: 'sheets/tenor-sax.pdf?v=quintet3',
+        pages: ['sheets/tenor-sax.png'],
         bars: TENOR_SAX_BB
       }
     ]

@@ -582,22 +582,35 @@ header .badge {
   .status-pill { width: 100%; margin: 0; text-align: center; }
 }
 @media print {
-  .ensemble-controls, .lineup-strip, .band-sync-bar, .studio-subbar, .live-finger-dock, .pages-toolbar {
+  @page {
+    size: letter portrait;
+    margin: 0;
+  }
+  .ensemble-controls, .lineup-strip, .band-sync-bar, .studio-subbar, .live-finger-dock, .pages-toolbar, #interactiveWrap {
     display: none !important;
   }
-  .pages, .pages.spread-2 {
-    display: block;
+  #printedWrap {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .pages, .pages.spread-2, .pages.fit-compact {
+    display: block !important;
+    max-width: none !important;
+    margin: 0 !important;
   }
   .page-frame {
-    border: 0;
-    box-shadow: none;
+    border: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
     page-break-after: always;
+    width: 100%;
   }
   .page-frame:last-child {
     page-break-after: auto;
   }
   .page-badge {
-    display: none;
+    display: none !important;
   }
 }
 </style>
@@ -652,13 +665,13 @@ header .badge {
 
     <div class="view-seg" role="group" aria-label="Sheet display mode">
       <button type="button" data-view="interactive" aria-pressed="true">Interactive Quintet Sheet</button>
-      <button type="button" data-view="printed" aria-pressed="false">Reference Scans (JPG)</button>
+      <button type="button" data-view="printed" aria-pressed="false">Printable Page View</button>
       <button type="button" data-view="both" aria-pressed="false">Both Stacked</button>
     </div>
 
     <button id="fingerBtn" type="button" class="secondary">Sax Fingerings</button>
-    <button id="printBtn" type="button" class="secondary">Print</button>
-    <a class="pdf secondary" id="pdf" href="sheets/score.pdf" target="_blank" rel="noopener">PDF</a>
+    <button id="printBtn" type="button" class="secondary" title="Print the current instrument's sheet music">🖨 Print</button>
+    <a class="pdf secondary" id="pdf" href="sheets/score.pdf?v=quintet3" target="_blank" rel="noopener" title="Open printable PDF for the currently selected part">📄 PDF (Full Score)</a>
     <a class="pdf secondary" href="joy-to-the-world-5-piece-quintet.wav" download="Joy to the World - 5-Piece Bb Quintet.wav" title="Download full 5-part stereo audio file">⬇ Audio (.WAV)</a>
 
     <div class="status-pill" id="status">Ready · Full 5-Part Score (Written F)</div>
@@ -744,7 +757,7 @@ header .badge {
 
 <div class="sheet-wrap" id="printedWrap" style="display:none">
   <div class="pages-toolbar">
-    <span class="hint" id="printedCaption">Original reference scans — use "Interactive Quintet Sheet" above for the customized 5-piece arrangement &amp; live note highlighting.</span>
+    <span class="hint" id="printedCaption">Print-ready 8.5" × 11" Portrait sheet for the currently selected part — click "📄 PDF" or "🖨 Print" above to print or save.</span>
     <div class="spread-controls">
       <button type="button" id="spreadBtn" aria-pressed="true">2-Page Spread</button>
       <button type="button" id="compactBtn" aria-pressed="false">Compact Width</button>
@@ -795,8 +808,8 @@ header .badge {
   <div id="inviteGrid" class="invite-grid"></div>
 </dialog>
 
-<script src="../../shared/catalog.js?v=quintet2"></script>
-<script src="song.js?v=quintet2"></script>
+<script src="../../shared/catalog.js?v=quintet3"></script>
+<script src="song.js?v=quintet3"></script>
 <script>
 (() => {
   const S = window.ENSEMBLE_SONG;
@@ -1416,11 +1429,9 @@ header .badge {
       const badge = document.createElement('span');
       badge.className = 'page-badge';
       if (currentPart.id === 'score') {
-        badge.textContent = index === 0 ? 'Page 1 · Bars 1–10' : 'Page 2 · Bars 11–28 ([A] & [B])';
-      } else if (currentPart.id === 'soprano-sax') {
-        badge.textContent = index === 0 ? 'Reference Sheet 1 · Lead Melody (B♭)' : 'Reference Sheet 2 · [A] Solo Line (B♭)';
+        badge.textContent = index === 0 ? 'Page 1 · Bars 1–16 (Intro & [A])' : 'Page 2 · Bars 17–28 ([B] & Coda)';
       } else {
-        badge.textContent = `${currentPart.name} · Reference Scan`;
+        badge.textContent = `${currentPart.name} · Printable Sheet (Bars 1–28)`;
       }
 
       const img = document.createElement('img');
@@ -1563,6 +1574,8 @@ header .badge {
     });
     partPickEl.value = currentPart.id;
     pdfEl.href = currentPart.pdf;
+    pdfEl.textContent = `📄 PDF (${currentPart.id === 'score' ? 'Full Score' : currentPart.name})`;
+    pdfEl.title = `Open printable PDF for ${currentPart.name}`;
     $('partBadge').textContent = `${currentPart.name} · ${currentPart.badge}`;
     $('mixModeWrap').style.display = currentPart.id === 'score' ? 'none' : 'inline-flex';
     fingerBtn.style.display = currentPart.supportsSaxFingering ? 'inline-block' : 'none';
@@ -1847,8 +1860,8 @@ header .badge {
     const frames = pagesEl.querySelectorAll('.page-frame');
     frames.forEach((f, idx) => {
       const onPage = currentPart.id === 'score'
-        ? (idx === 0 ? barIdx < 10 : barIdx >= 10)
-        : (currentPart.id === 'soprano-sax' ? (idx === 0 ? (barIdx < 10 || barIdx >= 15) : (barIdx >= 10 && barIdx < 15)) : true);
+        ? (idx === 0 ? barIdx < 16 : barIdx >= 16)
+        : true;
       f.classList.toggle('active-page', playing && onPage);
     });
 
@@ -2259,6 +2272,7 @@ header .badge {
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           <button type="button" data-copy-follow="${part.id}" style="flex:1;padding:6px 10px;font-size:.7rem;background:#263b32">📡 Copy Follow Link</button>
           <button type="button" data-copy-solo="${part.id}" style="padding:6px 10px;font-size:.7rem;background:#ede3cc;color:var(--ink);border:1px solid #b8ab8d">👤 Solo Link</button>
+          <a href="${part.pdf}" target="_blank" rel="noopener" class="pdf" style="padding:6px 10px;font-size:.7rem;background:#b44d2f;color:#fff;text-decoration:none">📄 PDF</a>
         </div>
       `;
       const fBtn = card.querySelector(`[data-copy-follow="${part.id}"]`);
