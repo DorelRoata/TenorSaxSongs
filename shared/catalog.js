@@ -140,25 +140,24 @@
       origin: 'G. F. HANDEL · ARR. PEREBIKOVSKI',
       category: 'ensemble',
       style: 'hymn',
-      styleLabel: 'Brass & Sax Ensemble',
-      level: 'Score + 10 Parts',
+      styleLabel: '5-Piece B♭ Quintet',
+      level: 'Score + 5 Parts',
       tempo: '92 BPM · Moderato',
       bpm: 92,
       time: '4/4',
-      writtenKey: 'F / B♭ / C / E♭',
+      writtenKey: 'F major (All B♭ Parts)',
       concertKey: 'E♭ major',
       bars: 28,
-      instruments: ['Full Score', 'Tenor Sax B♭', 'Trumpet 1 & 2', 'Horn F & E♭', 'Trombone 1 & 2', 'Euphonium 1 & 2', 'Tuba'],
+      instruments: ['Full 5-Part Score', 'Soprano Sax B♭', 'Trumpet B♭', 'Clarinet 1 B♭', 'Clarinet 2 B♭', 'Tenor Sax B♭'],
       href: 'songs/joy-to-the-world/',
-      description: 'Freue dich Welt! Interactive 6-voice brass & B♭ tenor sax play-along, part mixer, and engraved score/parts.',
+      description: 'Freue dich Welt! Interactive 5-voice B♭ Quintet play-along (Soprano Sax, Trumpet, 2 Clarinets, Tenor Sax), all in Written F major.',
       quickLinks: [
-        { label: 'Full Score', hash: '#score' },
-        { label: 'Tenor Sax Lead (B♭)', hash: '#tenor-sax' },
-        { label: 'Trumpet 1 (B♭)', hash: '#trumpet-1' },
-        { label: 'Euphonium 1 (B♭)', hash: '#euphonium-1' },
-        { label: 'Horn in F', hash: '#horn-f' },
-        { label: 'Trombone 1', hash: '#trombone-1' },
-        { label: 'Tuba', hash: '#tuba' }
+        { label: 'Full 5-Part Score', hash: '#score' },
+        { label: 'Soprano Sax (Lead)', hash: '#soprano-sax' },
+        { label: 'Trumpet in B♭', hash: '#trumpet' },
+        { label: 'Clarinet 1 in B♭', hash: '#clarinet-1' },
+        { label: 'Clarinet 2 in B♭', hash: '#clarinet-2' },
+        { label: 'Tenor Sax (Bass/Baritone)', hash: '#tenor-sax' }
       ]
     }
   ];

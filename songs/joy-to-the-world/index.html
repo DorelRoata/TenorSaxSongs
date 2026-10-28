@@ -3,9 +3,119 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Joy to the World - Interactive Brass & Tenor Sax Play-Along</title>
+<title>Joy to the World - Interactive 5-Piece B♭ Quintet Play-Along</title>
 <link rel="stylesheet" href="../../shared/player.css">
 <style>
+header {
+  background: linear-gradient(135deg, #13221c 0%, #1d332a 55%, #273e33 100%);
+  color: #f6f0df;
+  border-bottom: 1px solid #d5a63844;
+  padding: 26px 3.5vw 20px;
+}
+header h1 {
+  color: #fffdf6;
+  text-shadow: 0 2px 16px #00000045;
+}
+header .subtitle {
+  color: #cfd8d3;
+}
+header .badge {
+  background: linear-gradient(135deg, #d5a638, #b88722);
+  border-color: #f2d67f;
+  color: #16211c;
+  border-radius: 99px;
+  padding: 8px 16px;
+  box-shadow: 0 4px 14px #00000038;
+}
+.lineup-strip {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  padding: 12px 3.5vw;
+  background: #172720;
+  border-bottom: 1px solid #ffffff1f;
+  font-family: Arial, sans-serif;
+}
+.lineup-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #ffffff0c;
+  border: 1px solid #ffffff22;
+  color: #f4eedf;
+  text-align: left;
+  cursor: pointer;
+  transition: .15s;
+}
+.lineup-card:hover {
+  background: #ffffff18;
+  border-color: #f2d67f88;
+  transform: translateY(-1px);
+}
+.lineup-card.active-card {
+  background: linear-gradient(145deg, #c84f31, #9e3920);
+  border-color: #ffad94;
+  box-shadow: 0 6px 18px #00000045;
+}
+.lineup-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+}
+.lineup-role-pill {
+  padding: 2px 6px;
+  border-radius: 99px;
+  background: #00000042;
+  color: #f2d67f;
+  font: 700 .56rem Arial, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.lineup-card.active-card .lineup-role-pill {
+  background: #ffffff28;
+  color: #fff;
+}
+.lineup-name {
+  font: 700 .8rem Georgia, serif;
+  color: #fff;
+}
+.lineup-meta {
+  font: 600 .64rem Arial, sans-serif;
+  color: #c6d3cc;
+}
+.lineup-card.active-card .lineup-meta {
+  color: #ffece6;
+}
+.sync-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #74c69d;
+  box-shadow: 0 0 8px #74c69d;
+  margin-right: 4px;
+}
+.invite-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  padding: 0 28px 26px;
+  font-family: Arial, sans-serif;
+}
+.invite-card {
+  padding: 14px;
+  border-radius: 12px;
+  background: #fffdf8;
+  border: 1px solid #cbbda0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+}
 .ensemble-controls {
   position: sticky;
   top: 0;
@@ -229,6 +339,76 @@
   border-color: var(--ink);
   color: #f2d67f;
 }
+.band-sync-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  padding: 8px 3.5vw;
+  background: #23382f;
+  border-bottom: 1px solid #ffffff24;
+  color: #f4eedf;
+  font-family: Arial, sans-serif;
+}
+.sync-mode-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 99px;
+  background: #121e19;
+  border: 1px solid #ffffff29;
+}
+.sync-mode-btn {
+  padding: 5px 11px;
+  border-radius: 99px;
+  border: 0;
+  background: transparent;
+  color: #cdd8d2;
+  font: 700 .7rem Arial, sans-serif;
+  cursor: pointer;
+}
+.sync-mode-btn[aria-pressed="true"] {
+  background: #d5a638;
+  color: #16211c;
+}
+.sync-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: #ffffff14;
+  border: 1px solid #ffffff26;
+  font: 700 .7rem Arial, sans-serif;
+  color: #f4eedf;
+}
+.sync-room-input {
+  width: 64px;
+  border: 0;
+  border-radius: 6px;
+  padding: 2px 6px;
+  background: #121e19;
+  color: #f2d67f;
+  font: 800 .72rem monospace;
+  text-transform: uppercase;
+  text-align: center;
+}
+.sync-action-btn {
+  padding: 5px 11px;
+  border-radius: 99px;
+  border: 1px solid #f2d67f66;
+  background: #121e19;
+  color: #f2d67f;
+  font: 700 .7rem Arial, sans-serif;
+  cursor: pointer;
+}
+.sync-action-btn.audio-on {
+  background: #2d6a4f;
+  border-color: #74c69d;
+  color: #fff;
+}
 .live-finger-dock {
   display: flex;
   align-items: center;
@@ -391,14 +571,18 @@
   font: 700 11px Arial, sans-serif;
   fill: #263b32;
 }
+@media (max-width: 980px) {
+  .lineup-strip { grid-template-columns: repeat(3, 1fr); }
+}
 @media (max-width: 820px) {
+  .lineup-strip { grid-template-columns: repeat(2, 1fr); }
   .part-groups { display: none; }
   .partpick-row { display: flex; }
   .pages.spread-2 { grid-template-columns: 1fr; }
   .status-pill { width: 100%; margin: 0; text-align: center; }
 }
 @media print {
-  .ensemble-controls, .studio-subbar, .live-finger-dock, .pages-toolbar {
+  .ensemble-controls, .lineup-strip, .band-sync-bar, .studio-subbar, .live-finger-dock, .pages-toolbar {
     display: none !important;
   }
   .pages, .pages.spread-2 {
@@ -424,10 +608,12 @@
   <div>
     <a class="back" href="../../">← All songs</a>
     <h1>Joy to the World</h1>
-    <p class="subtitle" id="subtitle">Freue dich Welt! · Радуйся мир · G. F. Handel, arr. A. Perebikovski</p>
+    <p class="subtitle" id="subtitle">Freue dich Welt! · G. F. Handel, arr. A. Perebikovski · 5-Piece B♭ Quintet Studio</p>
   </div>
-  <div class="badge" id="partBadge">Brass & B♭ Sax · Moderato</div>
+  <div class="badge" id="partBadge">5-Piece B♭ Quintet · Moderato</div>
 </header>
+
+<section class="lineup-strip" id="lineupStrip" aria-label="5-Piece Quintet Player Lineup"></section>
 
 <section class="ensemble-controls" aria-label="Ensemble playback and part controls">
   <div class="transport-row">
@@ -445,7 +631,7 @@
       <select id="sectionSelect" aria-label="Practice section">
         <option value="all">All Bars (1–28)</option>
         <option value="intro">Opening (1–10)</option>
-        <option value="section-a">[A] Lyrical Middle (11–15)</option>
+        <option value="section-a">[A] Lyrical Duet (11–15)</option>
         <option value="section-b">[B] Full Return (16–23)</option>
         <option value="coda">Coda Finale (24–28)</option>
       </select>
@@ -465,8 +651,8 @@
     <label class="control-pill"><input id="clickToggle" type="checkbox" checked> Click</label>
 
     <div class="view-seg" role="group" aria-label="Sheet display mode">
-      <button type="button" data-view="interactive" aria-pressed="true">Interactive Play-Along</button>
-      <button type="button" data-view="printed" aria-pressed="false">Engraved Sheet (JPG)</button>
+      <button type="button" data-view="interactive" aria-pressed="true">Interactive Quintet Sheet</button>
+      <button type="button" data-view="printed" aria-pressed="false">Reference Scans (JPG)</button>
       <button type="button" data-view="both" aria-pressed="false">Both Stacked</button>
     </div>
 
@@ -474,13 +660,39 @@
     <button id="printBtn" type="button" class="secondary">Print</button>
     <a class="pdf secondary" id="pdf" href="sheets/score.pdf" target="_blank" rel="noopener">PDF</a>
 
-    <div class="status-pill" id="status">Ready · Together (Concert E♭)</div>
+    <div class="status-pill" id="status">Ready · Full 5-Part Score (Written F)</div>
   </div>
 
   <div class="part-groups" id="partGroups" aria-label="Choose score or instrument part"></div>
 
   <div class="partpick-row">
     <select class="partpick" id="partpick" aria-label="Choose a part"></select>
+  </div>
+</section>
+
+<section class="band-sync-bar" aria-label="Multi-device band sync controls">
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+    <span class="group-label" style="color:#f2d67f;margin-right:2px">Multi-Device Mode:</span>
+    <div class="sync-mode-group" role="group" aria-label="Device sync mode">
+      <button type="button" class="sync-mode-btn" data-sync-mode="solo" aria-pressed="true">👤 Solo (Play Myself)</button>
+      <button type="button" class="sync-mode-btn" data-sync-mode="conductor" aria-pressed="false">👑 Conductor (Control All)</button>
+      <button type="button" class="sync-mode-btn" data-sync-mode="follow" aria-pressed="false">📡 Follow Conductor</button>
+    </div>
+
+    <label class="sync-pill" title="All devices with the same Room Code sync together">
+      Room
+      <input id="syncRoomInput" class="sync-room-input" type="text" maxlength="8" value="JOY" aria-label="Sync room code">
+    </label>
+
+    <button id="followerAudioBtn" type="button" class="sync-action-btn" style="display:none" title="Toggle whether this follower device outputs sound or stays silent while scrolling">
+      🔇 Visual Sync Only (Tap for Audio)
+    </button>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+    <span id="syncStatusBadge" style="font:700 .72rem Arial,sans-serif;color:#cfe0d7"><i class="sync-dot"></i>Solo Mode · Independent control</span>
+    <button id="inviteBandBtn" type="button" class="sync-action-btn">📱 Invite Band (5 Part Links)</button>
+    <button id="copySyncLinkBtn" type="button" class="sync-action-btn">🔗 Copy My Part Link</button>
   </div>
 </section>
 
@@ -494,7 +706,7 @@
     <span class="group-label" style="color:#6c6049">Jump:</span>
     <button type="button" class="jump-btn active" data-bar="1">Bar 1 · Intro</button>
     <button type="button" class="jump-btn" data-bar="5">Bar 5 · Echo</button>
-    <button type="button" class="jump-btn" data-bar="11">[A] Bar 11 · Solo</button>
+    <button type="button" class="jump-btn" data-bar="11">[A] Bar 11 · Duet</button>
     <button type="button" class="jump-btn" data-bar="16">[B] Bar 16 · Tutti</button>
     <button type="button" class="jump-btn" data-bar="24">Bar 24 · Coda</button>
   </div>
@@ -504,9 +716,10 @@
   <div class="dock-left">
     <div class="dock-pitch">
       <strong id="dockNoteName">F5</strong>
-      <span id="dockConcertName">Sounds E♭4</span>
+      <span id="dockConcertName">Sounds E♭5</span>
     </div>
     <div class="dock-keys" id="dockSaxControls">
+      <span id="dockSaxBadge" style="padding:3px 8px;border-radius:99px;background:#263b32;color:#f2d67f;font-size:.64rem">B♭ Sax</span>
       <span>Left</span>
       <span class="dock-pearl-group" id="dockLeftKeys"></span>
       <span>Right</span>
@@ -514,8 +727,9 @@
       <span class="dock-oct" id="dockOctave">OCT</span>
       <span id="dockModifier" style="color:var(--rust);margin-left:4px">Standard keys</span>
     </div>
+    <div id="dockPartRoleSummary" style="display:none;font:700 .76rem Arial,sans-serif;color:#263b32"></div>
     <div id="dockEnsembleSummary" style="display:none;font:700 .78rem Arial,sans-serif;color:#263b32">
-      Full 6-Part Score — Each note highlights on its staff at the exact instant it plays.
+      Full 5-Part B♭ Quintet Score — Soprano Sax, Trumpet, Clarinet 1 &amp; 2, and Tenor Sax all read in Written F Major (1 flat: B♭).
     </div>
   </div>
   <div style="font:600 .74rem Arial,sans-serif;color:#5a665e">
@@ -529,7 +743,7 @@
 
 <div class="sheet-wrap" id="printedWrap" style="display:none">
   <div class="pages-toolbar">
-    <span class="hint" id="printedCaption">Engraved edition — switch to "Interactive Play-Along" above for real-time note highlighting.</span>
+    <span class="hint" id="printedCaption">Original reference scans — use "Interactive Quintet Sheet" above for the customized 5-piece arrangement &amp; live note highlighting.</span>
     <div class="spread-controls">
       <button type="button" id="spreadBtn" aria-pressed="true">2-Page Spread</button>
       <button type="button" id="compactBtn" aria-pressed="false">Compact Width</button>
@@ -540,12 +754,18 @@
 
 <section class="notes">
   <article class="card">
-    <h2>Full Ensemble + B♭ Tenor Sax Integration</h2>
-    <p>The score unites 6 brass lines in <strong>Concert E♭ major</strong>. Any <strong>B♭ Treble</strong> part (<em>Tenor Sax Lead</em>, <em>Trumpet 1 & 2</em>, or <em>Euphonium 1 & 2</em>) is written in <strong>F major (1 flat)</strong> and can be played directly on B♭ Tenor Saxophone with live fingering guidance.</p>
+    <h2>5-Piece B♭ Quintet Lineup (All in Written F Major)</h2>
+    <p>Every player in this ensemble reads in <strong>Written F Major (1 flat: B♭)</strong> in Treble Clef, sounding together in <strong>Concert E♭ Major</strong>:
+      <br>• <strong>Soprano Sax (Best Player):</strong> Continuous Lead Melody + <strong>[A]</strong> Lyrical Solo (bars 11–15) + High <code>A5–G5–F5</code> Coda descant.
+      <br>• <strong>Trumpet (Intermediate):</strong> Doubles the bold opening fanfare (bars 1–2 &amp; 16–17), then plays comfortable <code>C4–C5</code> upper harmony, <strong>[A]</strong> eighth-note pulse, and a safe <code>C5</code> Coda finale.
+      <br>• <strong>Clarinet 1 (More Advanced):</strong> Counter-melody, 16th-note fanfare pickups (<code>D5–E5–F5</code>), 3rd-harmony duet in <strong>[A]</strong>, and <code>D♭5–E♭5–F5</code> Coda climb.
+      <br>• <strong>Clarinet 2 (More Advanced):</strong> Agile running eighth-note cascades (bars 4 &amp; 19), dotted-eighth/sixteenth figures, arpeggiated pickups (<code>A4–C5–F5</code>), and inner harmony.
+      <br>• <strong>Tenor Sax (Intermediate):</strong> Anchors the ensemble as the true Bass &amp; Baritone foundation in a smooth written <code>C4–D5</code> range (sounding 1 octave below the other B♭ instruments).
+    </p>
   </article>
   <article class="card">
-    <h2>Practice Flow & Rehearsal Landmarks</h2>
-    <p>At <strong>[A] (Bar 11)</strong>, Trumpet 1 rests for 5 bars while Trombone 1 / Euphonium 1 carries the lyrical counter-melody. The <strong>Tenor Sax Lead</strong> part automatically cues that solo in bars 11–15 so soloists can play continuously from bar 1 to 28.</p>
+    <h2>Rehearsal Landmarks &amp; Balance Tips</h2>
+    <p>In <strong>Bars 1–2 &amp; 16–17</strong>, Soprano Sax and Trumpet unite in unison on the iconic opening fanfare while Clarinet 1 covers the 3rd harmony. At <strong>[A] (Bars 11–15)</strong>, Soprano Sax and Clarinet 1 step forward in a lyrical duet in 3rds/6ths over light staccato eighth notes in Trumpet &amp; Clarinet 2 and warm root pedals in Tenor Sax. At the <strong>Coda (Bar 24–28)</strong>, Soprano Sax soars to high <code>A5</code> while Trumpet anchors <code>C5</code> and Tenor Sax walks down to the low <code>F4</code> root.</p>
   </article>
 </section>
 </main>
@@ -553,13 +773,25 @@
 <dialog id="fingerDialog">
   <div class="finger-heading">
     <div>
-      <span class="eyebrow">B♭ Tenor Saxophone</span>
+      <span class="eyebrow" id="fingerDialogEyebrow">B♭ Saxophone</span>
       <h2 id="fingerDialogTitle">Fingerings in this part</h2>
     </div>
     <button id="closeFinger" aria-label="Close fingering chart">×</button>
   </div>
   <p class="finger-help">Dark circles are pressed keys. Click any card to hear its concert pitch; the active note lights up during playback.</p>
   <div id="fingerGrid" class="finger-grid"></div>
+</dialog>
+
+<dialog id="inviteDialog">
+  <div class="finger-heading">
+    <div>
+      <span class="eyebrow">Multi-Device Rehearsal Room</span>
+      <h2 id="inviteDialogTitle">Invite Your 5-Piece Quintet</h2>
+    </div>
+    <button id="closeInvite" aria-label="Close invite modal" style="background:transparent;color:var(--ink);font-size:2rem;padding:4px 12px">×</button>
+  </div>
+  <p class="finger-help">Send each bandmate their direct instrument link below. It opens their part in <strong>📡 Follow Conductor</strong> mode so your device controls the whole band, or they can switch to <strong>👤 Solo</strong> anytime to practice on their own.</p>
+  <div id="inviteGrid" class="invite-grid"></div>
 </dialog>
 
 <script src="../../shared/catalog.js"></script>
@@ -605,6 +837,17 @@
   let endTimer = null;
   let rafId = null;
 
+  // Multi-device Band Sync state
+  const urlParams = new URLSearchParams(location.search);
+  const clientId = 'dev-' + Math.random().toString(36).slice(2, 9);
+  let syncMode = urlParams.get('mode') === 'follow' ? 'follow' : (urlParams.get('mode') === 'conductor' ? 'conductor' : 'solo');
+  let syncRoom = (urlParams.get('room') || 'JOY').toUpperCase().replace(/[^A-Z0-9]/g, '') || 'JOY';
+  let followerAudioEnabled = false; // Default: silent visual sync on follower devices so 5 phones don't echo
+  let suppressSyncBroadcast = false;
+  let ntfySource = null;
+  let localSseSource = null;
+  let bcChannel = null;
+
   let noteEls = [];
   let scoreVoiceNoteEls = new Map();
   let barBoxEls = [];
@@ -617,6 +860,7 @@
   let lastSystemScrolled = -1;
 
   const partButtons = new Map();
+  const lineupCards = new Map();
   const fingerCards = new Map();
   const voiceState = new Map();
   const voiceChips = new Map();
@@ -701,8 +945,19 @@
 
   function updateLiveFingerDock(pitch) {
     const showSax = currentPart.supportsSaxFingering;
+    const isScore = currentPart.id === 'score';
     $('dockSaxControls').style.display = showSax ? 'flex' : 'none';
-    $('dockEnsembleSummary').style.display = currentPart.id === 'score' ? 'block' : 'none';
+    $('dockEnsembleSummary').style.display = isScore ? 'block' : 'none';
+    const roleEl = $('dockPartRoleSummary');
+    if (roleEl) {
+      roleEl.style.display = (!isScore && !showSax) ? 'block' : 'none';
+      if (!isScore && !showSax) {
+        roleEl.innerHTML = `<span style="color:var(--rust)">${currentPart.skill || ''}</span> · Range: <strong>${currentPart.range || ''}</strong> · ${currentPart.detail}`;
+      }
+    }
+    if (showSax && $('dockSaxBadge')) {
+      $('dockSaxBadge').textContent = currentPart.id === 'soprano-sax' ? 'B♭ Soprano Sax' : 'B♭ Tenor Sax';
+    }
 
     if (!pitch || pitch === 'R') {
       $('dockNoteName').textContent = 'Rest';
@@ -729,6 +984,9 @@
     fingerGrid.replaceChildren();
     fingerCards.clear();
     if (!currentPart.supportsSaxFingering) return;
+    if ($('fingerDialogEyebrow')) {
+      $('fingerDialogEyebrow').textContent = currentPart.saxType || 'B♭ Saxophone';
+    }
     $('fingerDialogTitle').textContent = `Fingerings · ${currentPart.name} (${currentPart.writtenKey})`;
     const pitches = [...new Set(currentPart.bars.flat().map(n => n[0]).filter(p => p !== 'R'))].sort((a, b) => midi(a) - midi(b));
     pitches.forEach(p => {
@@ -916,8 +1174,8 @@
     const height = 95 + systems * systemHeight;
 
     svg.setAttribute('viewBox', `0 0 1120 ${height}`);
-    svg.append(el('text', { x: 55, y: 30, class: 'title-svg' }, `${S.title} — Full 6-Part Interactive Score (Concert E♭)`));
-    svg.append(el('text', { x: 55, y: 52, class: 'meta' }, 'Each note highlights as it plays · Click any measure to jump'));
+    svg.append(el('text', { x: 55, y: 30, class: 'title-svg' }, `${S.title} — Full 5-Part B♭ Quintet Score (Written F Major · Sounds Concert E♭)`));
+    svg.append(el('text', { x: 55, y: 52, class: 'meta' }, 'Soprano Sax · Trumpet · Clarinet 1 · Clarinet 2 · Tenor Sax · Click any measure to jump'));
     svg.append(el('text', { x: 850, y: 52, class: 'meta' }, `♩ = ${tempoInput.value} · 4/4 · Moderato`));
 
     S.voices.forEach(v => scoreVoiceNoteEls.set(v.id, []));
@@ -1158,10 +1416,10 @@
       badge.className = 'page-badge';
       if (currentPart.id === 'score') {
         badge.textContent = index === 0 ? 'Page 1 · Bars 1–10' : 'Page 2 · Bars 11–28 ([A] & [B])';
-      } else if (currentPart.id === 'tenor-sax') {
-        badge.textContent = index === 0 ? 'Sheet 1 · Lead Melody (Trumpet 1 in B♭)' : 'Sheet 2 · [A] Solo Line (Euphonium 1 in B♭)';
+      } else if (currentPart.id === 'soprano-sax') {
+        badge.textContent = index === 0 ? 'Reference Sheet 1 · Lead Melody (B♭)' : 'Reference Sheet 2 · [A] Solo Line (B♭)';
       } else {
-        badge.textContent = `${currentPart.name} · Bars 1–28`;
+        badge.textContent = `${currentPart.name} · Reference Scan`;
       }
 
       const img = document.createElement('img');
@@ -1222,6 +1480,27 @@
     }
 
     partPickEl.addEventListener('change', () => selectPart(partPickEl.value, true));
+
+    const lineupStripEl = $('lineupStrip');
+    if (lineupStripEl) {
+      lineupStripEl.replaceChildren();
+      lineupCards.clear();
+      S.parts.forEach(part => {
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'lineup-card';
+        card.innerHTML = `
+          <div class="lineup-card-top">
+            <span class="lineup-name">${part.name}</span>
+            <span class="lineup-role-pill">${part.skill || 'Ensemble'}</span>
+          </div>
+          <div class="lineup-meta">${part.badge} · Range: ${part.range || part.writtenKey}</div>
+        `;
+        card.addEventListener('click', () => selectPart(part.id, true));
+        lineupStripEl.append(card);
+        lineupCards.set(part.id, card);
+      });
+    }
   }
 
   function buildMixer() {
@@ -1278,6 +1557,9 @@
     partButtons.forEach((btn, key) => {
       btn.setAttribute('aria-pressed', String(key === currentPart.id));
     });
+    lineupCards.forEach((card, key) => {
+      card.classList.toggle('active-card', key === currentPart.id);
+    });
     partPickEl.value = currentPart.id;
     pdfEl.href = currentPart.pdf;
     $('partBadge').textContent = `${currentPart.name} · ${currentPart.badge}`;
@@ -1309,8 +1591,12 @@
     if (audio.state === 'suspended') audio.resume();
   }
 
+  function isSilentFollower() {
+    return syncMode === 'follow' && !followerAudioEnabled;
+  }
+
   function playTone(freq, start, duration, volume = 0.05, type = 'sawtooth') {
-    if (!audio || volume <= 0.0005) return;
+    if (!audio || volume <= 0.0005 || isSilentFollower()) return;
     const osc = audio.createOscillator();
     const gain = audio.createGain();
     osc.type = type;
@@ -1324,6 +1610,7 @@
   }
 
   function playClick(t, accent) {
+    if (isSilentFollower()) return;
     playTone(accent ? 1040 : 760, t, 0.038, accent ? 0.05 : 0.025, 'square');
   }
 
@@ -1435,9 +1722,7 @@
     else if (barNum === 15) g *= 0.58;
 
     if (currentPart.id !== 'score') {
-      const activeVoiceId = currentPart.id === 'tenor-sax' && barNum >= 11 && barNum <= 15
-        ? 'trombone-1'
-        : currentPart.voiceId;
+      const activeVoiceId = currentPart.voiceId;
       const mode = mixModeSelect.value;
       if (mode === 'minus-one' && voice.id === activeVoiceId) return 0;
       if (mode === 'solo-part') return voice.id === activeVoiceId ? g * 1.4 : 0;
@@ -1460,7 +1745,7 @@
     frames.forEach((f, idx) => {
       const onPage = currentPart.id === 'score'
         ? (idx === 0 ? barIdx < 10 : barIdx >= 10)
-        : (currentPart.id === 'tenor-sax' ? (idx === 0 ? (barIdx < 10 || barIdx >= 15) : (barIdx >= 10 && barIdx < 15)) : true);
+        : (currentPart.id === 'soprano-sax' ? (idx === 0 ? (barIdx < 10 || barIdx >= 15) : (barIdx >= 10 && barIdx < 15)) : true);
       f.classList.toggle('active-page', playing && onPage);
     });
 
@@ -1475,15 +1760,16 @@
     });
   }
 
-  function pausePlayback() {
+  function pausePlayback(fromRemote = false) {
     clearTimers();
     playing = false;
     paused = true;
     playBtn.textContent = `▶ Resume (Bar ${currentBar + 1})`;
     statusEl.textContent = `Paused · Bar ${currentBar + 1} of 28`;
+    if (!fromRemote) broadcastSyncState('pause');
   }
 
-  function stopPlayback() {
+  function stopPlayback(fromRemote = false) {
     clearTimers();
     playing = false;
     paused = false;
@@ -1499,13 +1785,14 @@
     });
     highlightActiveMeasure(currentBar);
     statusEl.textContent = `Ready · ${currentPart.name} (${currentPart.writtenKey})`;
+    if (!fromRemote) broadcastSyncState('stop');
   }
 
-  function seekToBar(barIdx, previewPitch = null, clickedIdx = null) {
+  function seekToBar(barIdx, previewPitch = null, clickedIdx = null, fromRemote = false) {
     currentBar = Math.max(0, Math.min(27, barIdx));
     highlightActiveMeasure(currentBar);
     if (playing) {
-      schedulePlayback(currentBar, false);
+      schedulePlayback(currentBar, false, fromRemote);
     } else {
       if (paused) playBtn.textContent = `▶ Resume (Bar ${currentBar + 1})`;
       if (clickedIdx !== null && currentPart.id !== 'score') {
@@ -1518,15 +1805,17 @@
         highlightFingering(firstPitch);
       }
       statusEl.textContent = `Ready at Bar ${currentBar + 1} · ${currentPart.name}`;
+      if (!fromRemote) broadcastSyncState('seek');
     }
   }
 
-  function schedulePlayback(startBarIndex = currentBar, withCountIn = true) {
+  function schedulePlayback(startBarIndex = currentBar, withCountIn = true, fromRemote = false) {
     clearTimers();
     ensureAudio();
     playing = true;
     paused = false;
     playBtn.textContent = '❚❚ Pause';
+    if (!fromRemote) broadcastSyncState('play', { startBarIndex, withCountIn });
 
     noteEls.forEach(n => n.el.setAttribute('class', 'note'));
     scoreVoiceNoteEls.forEach(arr => arr.forEach(n => n.el.setAttribute('class', 'note')));
@@ -1632,19 +1921,270 @@
     if (playing) pausePlayback();
     else schedulePlayback(currentBar, !paused);
   });
-  stopBtn.addEventListener('click', stopPlayback);
+  stopBtn.addEventListener('click', () => stopPlayback(false));
   $('printBtn').addEventListener('click', () => window.print());
 
   tempoInput.addEventListener('input', () => {
     tempoValue.textContent = `${tempoInput.value} BPM`;
     drawInteractiveSheet();
     if (playing) schedulePlayback(currentBar, false);
+    else broadcastSyncState('tempo');
   });
 
   sectionSelect.addEventListener('change', () => {
     const sec = getSelectedSection();
     seekToBar(sec.startBar - 1);
   });
+
+  loopToggle.addEventListener('change', () => {
+    broadcastSyncState('settings');
+  });
+
+  // --- Multi-Device Band Sync Engine (Cloud Pub/Sub SSE + Local Server SSE + BroadcastChannel) ---
+  const syncRoomInput = $('syncRoomInput');
+  const followerAudioBtn = $('followerAudioBtn');
+  const syncStatusBadge = $('syncStatusBadge');
+  const copySyncLinkBtn = $('copySyncLinkBtn');
+
+  function getNtfyTopic(room) {
+    return `tenorsax-joy-quintet-sync-${room.toLowerCase()}`;
+  }
+
+  function broadcastSyncState(action, extra = {}) {
+    if (syncMode !== 'conductor' || suppressSyncBroadcast) return;
+    const payload = {
+      sender: clientId,
+      room: syncRoom,
+      action,
+      bar: extra.startBarIndex ?? currentBar,
+      withCountIn: extra.withCountIn ?? false,
+      tempo: +tempoInput.value,
+      section: sectionSelect.value,
+      loop: loopToggle.checked,
+      sentAt: Date.now()
+    };
+
+    // 1. Same-device instant BroadcastChannel
+    if (bcChannel) {
+      try { bcChannel.postMessage(payload); } catch {}
+    }
+    // 2. Local server SSE (if running via node server.js / Cloudflare Tunnel)
+    if (location.protocol.startsWith('http')) {
+      fetch('/api/sync/command', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(() => {});
+    }
+    // 3. Global Cloud Pub/Sub SSE (works 24/7 on GitHub Pages across any phones/tablets)
+    fetch(`https://ntfy.sh/${getNtfyTopic(syncRoom)}`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }).catch(() => {});
+
+    syncStatusBadge.textContent = `👑 Broadcasting (${action.toUpperCase()} · Bar ${payload.bar + 1} · ${payload.tempo} BPM)`;
+  }
+
+  function applyRemoteSyncCommand(msg) {
+    if (!msg || msg.sender === clientId || syncMode !== 'follow') return;
+    suppressSyncBroadcast = true;
+    try {
+      if (typeof msg.tempo === 'number' && msg.tempo !== +tempoInput.value) {
+        tempoInput.value = msg.tempo;
+        tempoValue.textContent = `${msg.tempo} BPM`;
+        drawInteractiveSheet();
+      }
+      if (msg.section && msg.section !== sectionSelect.value) {
+        sectionSelect.value = msg.section;
+      }
+      if (typeof msg.loop === 'boolean') {
+        loopToggle.checked = msg.loop;
+      }
+      if (typeof msg.bar === 'number') {
+        currentBar = Math.max(0, Math.min(27, msg.bar));
+        highlightActiveMeasure(currentBar);
+      }
+
+      if (msg.action === 'play') {
+        schedulePlayback(currentBar, !!msg.withCountIn, true);
+        syncStatusBadge.textContent = `📡 Synced with Conductor · Playing Bar ${currentBar + 1}`;
+      } else if (msg.action === 'pause') {
+        pausePlayback(true);
+        syncStatusBadge.textContent = `📡 Synced with Conductor · Paused at Bar ${currentBar + 1}`;
+      } else if (msg.action === 'stop') {
+        stopPlayback(true);
+        syncStatusBadge.textContent = `📡 Synced with Conductor · Stopped at Bar ${currentBar + 1}`;
+      } else if (msg.action === 'seek' || msg.action === 'tempo' || msg.action === 'settings') {
+        if (playing) schedulePlayback(currentBar, false, true);
+        syncStatusBadge.textContent = `📡 Synced with Conductor · Ready at Bar ${currentBar + 1} (${tempoInput.value} BPM)`;
+      }
+    } finally {
+      suppressSyncBroadcast = false;
+    }
+  }
+
+  function teardownSyncStreams() {
+    if (ntfySource) { try { ntfySource.close(); } catch {} ntfySource = null; }
+    if (localSseSource) { try { localSseSource.close(); } catch {} localSseSource = null; }
+    if (bcChannel) { try { bcChannel.close(); } catch {} bcChannel = null; }
+  }
+
+  function connectSyncStreams() {
+    teardownSyncStreams();
+    if (syncMode === 'solo') return;
+
+    // 1. BroadcastChannel for local browser tabs
+    if ('BroadcastChannel' in window) {
+      bcChannel = new BroadcastChannel(`tenorsax-sync-${syncRoom}`);
+      bcChannel.onmessage = ev => applyRemoteSyncCommand(ev.data);
+    }
+
+    // 2. Local Node server SSE (if served by server.js)
+    if (location.protocol.startsWith('http') && !location.hostname.endsWith('github.io')) {
+      try {
+        localSseSource = new EventSource(`/api/sync/stream?room=${encodeURIComponent(syncRoom)}`);
+        localSseSource.onmessage = ev => {
+          try {
+            const data = JSON.parse(ev.data);
+            if (data.type === 'hello' && data.state && syncMode === 'follow') {
+              applyRemoteSyncCommand(data.state);
+            } else if (data.action) {
+              applyRemoteSyncCommand(data);
+            }
+          } catch {}
+        };
+      } catch {}
+    }
+
+    // 3. Cloud Pub/Sub SSE via ntfy.sh (works on GitHub Pages, custom domains, and mobile devices anywhere)
+    try {
+      ntfySource = new EventSource(`https://ntfy.sh/${getNtfyTopic(syncRoom)}/sse`);
+      ntfySource.onmessage = ev => {
+        try {
+          const envelope = JSON.parse(ev.data);
+          if (envelope && envelope.message) {
+            const payload = JSON.parse(envelope.message);
+            applyRemoteSyncCommand(payload);
+          }
+        } catch {}
+      };
+    } catch {}
+  }
+
+  function setSyncMode(mode) {
+    syncMode = mode;
+    document.querySelectorAll('.sync-mode-btn').forEach(btn => {
+      btn.setAttribute('aria-pressed', String(btn.dataset.syncMode === syncMode));
+    });
+    followerAudioBtn.style.display = syncMode === 'follow' ? 'inline-flex' : 'none';
+
+    if (syncMode === 'solo') {
+      teardownSyncStreams();
+      syncStatusBadge.textContent = '👤 Solo Mode · Play at your own pace';
+    } else if (syncMode === 'conductor') {
+      connectSyncStreams();
+      syncStatusBadge.textContent = `👑 Conductor Active (Room ${syncRoom}) · Your controls drive all followers`;
+      broadcastSyncState(playing ? 'play' : 'seek', { startBarIndex: currentBar, withCountIn: false });
+    } else {
+      ensureAudio();
+      connectSyncStreams();
+      syncStatusBadge.textContent = `📡 Following Room ${syncRoom} · Pick your instrument part above!`;
+    }
+  }
+
+  function updateFollowerAudioUI() {
+    followerAudioBtn.classList.toggle('audio-on', followerAudioEnabled);
+    followerAudioBtn.textContent = followerAudioEnabled
+      ? '🔊 My Device Audio ON (Earbuds / Remote)'
+      : '🔇 Visual Sync Only (Tap for Audio)';
+    if (playing && syncMode === 'follow') {
+      schedulePlayback(currentBar, false, true);
+    }
+  }
+
+  document.querySelectorAll('.sync-mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => setSyncMode(btn.dataset.syncMode));
+  });
+
+  syncRoomInput.value = syncRoom;
+  syncRoomInput.addEventListener('change', () => {
+    syncRoom = syncRoomInput.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') || 'JOY';
+    syncRoomInput.value = syncRoom;
+    if (syncMode !== 'solo') connectSyncStreams();
+  });
+
+  followerAudioBtn.addEventListener('click', () => {
+    followerAudioEnabled = !followerAudioEnabled;
+    updateFollowerAudioUI();
+  });
+
+  copySyncLinkBtn.addEventListener('click', () => {
+    const shareUrl = new URL(location.href);
+    shareUrl.searchParams.set('room', syncRoom);
+    shareUrl.searchParams.set('mode', 'follow');
+    shareUrl.hash = currentPart.id;
+    navigator.clipboard?.writeText(shareUrl.toString());
+    const orig = copySyncLinkBtn.textContent;
+    copySyncLinkBtn.textContent = '✓ Follower Link Copied!';
+    setTimeout(() => { copySyncLinkBtn.textContent = orig; }, 2000);
+  });
+
+  const inviteDialog = $('inviteDialog');
+  const inviteGrid = $('inviteGrid');
+  function buildInviteModal() {
+    if (!inviteGrid) return;
+    inviteGrid.replaceChildren();
+    $('inviteDialogTitle').textContent = `Invite Band · Room ${syncRoom}`;
+    S.parts.forEach(part => {
+      const card = document.createElement('div');
+      card.className = 'invite-card';
+      const followUrl = new URL(location.href);
+      followUrl.searchParams.set('room', syncRoom);
+      followUrl.searchParams.set('mode', 'follow');
+      followUrl.hash = part.id;
+
+      const soloUrl = new URL(location.href);
+      soloUrl.searchParams.delete('mode');
+      soloUrl.hash = part.id;
+
+      card.innerHTML = `
+        <div>
+          <span class="eyebrow">${part.skill || 'Score'} · ${part.range || ''}</span>
+          <h3 style="margin:4px 0 4px;font:700 1.1rem Georgia,serif;color:var(--ink)">${part.name}</h3>
+          <p style="margin:0;font-size:.76rem;color:#526158">${part.detail}</p>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button type="button" data-copy-follow="${part.id}" style="flex:1;padding:6px 10px;font-size:.7rem;background:#263b32">📡 Copy Follow Link</button>
+          <button type="button" data-copy-solo="${part.id}" style="padding:6px 10px;font-size:.7rem;background:#ede3cc;color:var(--ink);border:1px solid #b8ab8d">👤 Solo Link</button>
+        </div>
+      `;
+      const fBtn = card.querySelector(`[data-copy-follow="${part.id}"]`);
+      fBtn.addEventListener('click', () => {
+        navigator.clipboard?.writeText(followUrl.toString());
+        fBtn.textContent = '✓ Copied Follow Link!';
+        setTimeout(() => { fBtn.textContent = '📡 Copy Follow Link'; }, 1800);
+      });
+      const sBtn = card.querySelector(`[data-copy-solo="${part.id}"]`);
+      sBtn.addEventListener('click', () => {
+        navigator.clipboard?.writeText(soloUrl.toString());
+        sBtn.textContent = '✓ Copied!';
+        setTimeout(() => { sBtn.textContent = '👤 Solo Link'; }, 1800);
+      });
+      inviteGrid.append(card);
+    });
+  }
+
+  $('inviteBandBtn')?.addEventListener('click', () => {
+    buildInviteModal();
+    inviteDialog?.showModal();
+  });
+  $('closeInvite')?.addEventListener('click', () => inviteDialog?.close());
+  inviteDialog?.addEventListener('click', e => {
+    if (e.target === inviteDialog) inviteDialog.close();
+  });
+
+  updateFollowerAudioUI();
+  setSyncMode(syncMode);
 
   mixModeSelect.addEventListener('change', () => {
     if (playing) schedulePlayback(currentBar, false);

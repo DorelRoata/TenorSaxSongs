@@ -1,0 +1,11 @@
+{
+  "name": "music-carbonshop-us",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Music.CarbonShop.us — Interactive B-flat Saxophone & Quintet Play-Along Studio with Multi-Device Band Sync",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "deploy:cf": "npx wrangler pages deploy . --project-name=music-carbonshop-us"
+  }
+}
