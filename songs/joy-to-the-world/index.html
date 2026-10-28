@@ -648,7 +648,7 @@ header .badge {
     </label>
 
     <label class="control-pill"><input id="loopToggle" type="checkbox"> Loop</label>
-    <label class="control-pill"><input id="clickToggle" type="checkbox" checked> Click</label>
+    <label class="control-pill" title="Enable metronome click &amp; 4-beat count-in"><input id="clickToggle" type="checkbox"> Click</label>
 
     <div class="view-seg" role="group" aria-label="Sheet display mode">
       <button type="button" data-view="interactive" aria-pressed="true">Interactive Quintet Sheet</button>
@@ -795,8 +795,8 @@ header .badge {
   <div id="inviteGrid" class="invite-grid"></div>
 </dialog>
 
-<script src="../../shared/catalog.js"></script>
-<script src="song.js"></script>
+<script src="../../shared/catalog.js?v=quintet2"></script>
+<script src="song.js?v=quintet2"></script>
 <script>
 (() => {
   const S = window.ENSEMBLE_SONG;
@@ -1581,13 +1581,78 @@ header .badge {
     if (updateHash) history.replaceState(null, '', '#' + currentPart.id);
   }
 
+  // Multi-harmonic wind & brass profiles matching the studio WAV recording
+  const VOICE_PROFILES = {
+    'soprano-sax': {
+      pan: -0.20,
+      vibDepth: 3.2,
+      vibRate: 5.4,
+      attack: 0.022,
+      release: 0.045,
+      harmonics: [1.0, 0.68, 0.42, 0.25, 0.14, 0.08, 0.04]
+    },
+    'trumpet': {
+      pan: 0.24,
+      vibDepth: 1.8,
+      vibRate: 5.0,
+      attack: 0.016,
+      release: 0.040,
+      harmonics: [0.85, 1.0, 0.72, 0.48, 0.28, 0.16, 0.09]
+    },
+    'clarinet-1': {
+      pan: -0.48,
+      vibDepth: 1.2,
+      vibRate: 4.8,
+      attack: 0.020,
+      release: 0.040,
+      harmonics: [1.0, 0.18, 0.65, 0.12, 0.36, 0.08, 0.15]
+    },
+    'clarinet-2': {
+      pan: 0.48,
+      vibDepth: 1.2,
+      vibRate: 4.7,
+      attack: 0.020,
+      release: 0.040,
+      harmonics: [1.0, 0.20, 0.62, 0.14, 0.34, 0.07, 0.14]
+    },
+    'tenor-sax': {
+      pan: 0.0,
+      vibDepth: 2.2,
+      vibRate: 5.1,
+      attack: 0.026,
+      release: 0.055,
+      harmonics: [1.0, 0.78, 0.50, 0.30, 0.18, 0.09, 0.04]
+    }
+  };
+  let periodicWaves = new Map();
+
   function ensureAudio() {
     if (!audio || audio.state === 'closed') {
       audio = new (window.AudioContext || window.webkitAudioContext)();
       masterFilter = audio.createBiquadFilter();
       masterFilter.type = 'lowpass';
-      masterFilter.frequency.value = 2150;
-      masterFilter.connect(audio.destination);
+      masterFilter.frequency.value = 3800;
+
+      // Subtle stereo concert-hall reverb bus
+      const dryGain = audio.createGain();
+      dryGain.gain.value = 0.88;
+      masterFilter.connect(dryGain).connect(audio.destination);
+
+      [0.037, 0.053, 0.079].forEach((delaySec, idx) => {
+        const dNode = audio.createDelay(0.2);
+        dNode.delayTime.value = delaySec;
+        const wGain = audio.createGain();
+        wGain.gain.value = 0.11 - idx * 0.025;
+        masterFilter.connect(dNode).connect(wGain).connect(audio.destination);
+      });
+
+      periodicWaves.clear();
+      for (const [id, prof] of Object.entries(VOICE_PROFILES)) {
+        const real = new Float32Array(prof.harmonics.length + 1);
+        const imag = new Float32Array(prof.harmonics.length + 1);
+        prof.harmonics.forEach((amp, i) => { imag[i + 1] = amp; });
+        periodicWaves.set(id, audio.createPeriodicWave(real, imag));
+      }
     }
     if (audio.state === 'suspended') audio.resume();
   }
@@ -1596,23 +1661,59 @@ header .badge {
     return syncMode === 'follow' && !followerAudioEnabled;
   }
 
-  function playTone(freq, start, duration, volume = 0.05, type = 'sawtooth') {
+  function playTone(freq, start, duration, volume = 0.05, voiceIdOrWave = 'soprano-sax', useVibrato = false) {
     if (!audio || volume <= 0.0005 || isSilentFollower()) return;
     const osc = audio.createOscillator();
     const gain = audio.createGain();
-    osc.type = type;
-    osc.frequency.value = freq;
+    const prof = VOICE_PROFILES[voiceIdOrWave];
+
+    if (prof && periodicWaves.has(voiceIdOrWave)) {
+      osc.setPeriodicWave(periodicWaves.get(voiceIdOrWave));
+    } else {
+      osc.type = typeof voiceIdOrWave === 'string' && ['sine', 'square', 'sawtooth', 'triangle'].includes(voiceIdOrWave)
+        ? voiceIdOrWave
+        : 'sawtooth';
+    }
+    osc.frequency.setValueAtTime(freq, start);
+
+    // Expressive vibrato on sustained wind/brass notes
+    if (prof && useVibrato && duration > 0.35) {
+      const lfo = audio.createOscillator();
+      const lfoGain = audio.createGain();
+      lfo.frequency.value = prof.vibRate;
+      lfoGain.gain.setValueAtTime(0, start);
+      lfoGain.gain.linearRampToValueAtTime(prof.vibDepth, start + 0.15);
+      lfo.connect(lfoGain).connect(osc.frequency);
+      lfo.start(start);
+      lfo.stop(start + duration);
+    }
+
+    // Wind/brass sustain ADSR envelope (holds full breath tone instead of decaying immediately)
+    const atk = prof ? Math.min(prof.attack, duration * 0.25) : 0.015;
+    const rel = prof ? Math.min(prof.release, duration * 0.25) : 0.025;
+    const sustainStart = start + atk;
+    const releaseStart = Math.max(sustainStart + 0.01, start + duration - rel);
+
     gain.gain.setValueAtTime(0.0001, start);
-    gain.gain.exponentialRampToValueAtTime(volume, start + 0.015);
-    gain.gain.exponentialRampToValueAtTime(0.0001, start + Math.max(0.04, duration - 0.018));
-    osc.connect(gain).connect(masterFilter || audio.destination);
+    gain.gain.linearRampToValueAtTime(volume * 1.35, sustainStart);
+    gain.gain.exponentialRampToValueAtTime(volume * 1.15, releaseStart);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+
+    if (prof && audio.createStereoPanner) {
+      const panner = audio.createStereoPanner();
+      panner.pan.value = prof.pan;
+      osc.connect(gain).connect(panner).connect(masterFilter || audio.destination);
+    } else {
+      osc.connect(gain).connect(masterFilter || audio.destination);
+    }
+
     osc.start(start);
-    osc.stop(start + duration);
+    osc.stop(start + duration + 0.01);
   }
 
   function playClick(t, accent) {
     if (isSilentFollower()) return;
-    playTone(accent ? 1040 : 760, t, 0.038, accent ? 0.05 : 0.025, 'square');
+    playTone(accent ? 1040 : 760, t, 0.038, accent ? 0.04 : 0.02, 'square', false);
   }
 
   function previewSingleNote(pitch) {
@@ -1620,7 +1721,8 @@ header .badge {
     ensureAudio();
     const semitones = currentPart.semitonesToConcert ?? -2;
     const concertMidi = midi(pitch) + semitones;
-    playTone(hz(concertMidi), audio.currentTime + 0.01, 0.5, 0.085, 'triangle');
+    const vid = currentPart.voiceId || 'soprano-sax';
+    playTone(hz(concertMidi), audio.currentTime + 0.01, 0.55, 0.085, vid, true);
     highlightFingering(pitch);
   }
 
@@ -1830,15 +1932,15 @@ header .badge {
     const bpm = +tempoInput.value;
     const beat = 60 / bpm;
     const unit = beat / S.beatUnit;
-    const countInBeats = withCountIn ? S.beatsPerBar : 0;
+    const useClick = clickToggle.checked;
+    const countInBeats = (withCountIn && useClick) ? S.beatsPerBar : 0;
     const countInSec = countInBeats * beat;
     const start = audio.currentTime + 0.04;
     const musicStart = start + countInSec;
-    const useClick = clickToggle.checked;
 
-    if (withCountIn) {
+    if (countInBeats > 0) {
       for (let i = 0; i < countInBeats; i++) {
-        if (useClick) playClick(start + i * beat, i === 0);
+        playClick(start + i * beat, i === 0);
       }
       statusEl.textContent = `Count-In · Starting Bar ${startBarIndex + 1}`;
     }
@@ -1866,7 +1968,7 @@ header .badge {
           const durSec = vDur * unit;
           if (vPitch !== 'R' && gain > 0) {
             const concertM = midi(vPitch) + voice.semitonesToConcert;
-            playTone(hz(concertM), noteTime, durSec * 0.91, gain, voice.wave);
+            playTone(hz(concertM), noteTime, durSec * 0.93, gain, voice.id, vDur >= 6);
           }
           const target = currentPart.id === 'score'
             ? voiceArr.find(n => n.barIndex === bi && n.startUnit === noteStartUnit)
